@@ -12,3 +12,6 @@ Desktop.ini
 # Autoskills (generated)
 .agents/
 skills-lock.json
+
+# Compiled files
+dist/
