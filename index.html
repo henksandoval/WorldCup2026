@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendimiento por Confederación - Mundial 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .table-container {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        th {
+            background-color: #1e3a8a;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        th:hover {
+            background-color: #1e40af;
+        }
+        .main-row:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .main-row:hover {
+            background-color: #eff6ff;
+        }
+        .toggle-btn {
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .confed-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.1));
+        }
+        .country-flag {
+            width: 24px;
+            height: 18px;
+            object-fit: cover;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+                Copa Mundial de la FIFA 2026™
+            </h1>
+            <p class="text-gray-600 text-lg">Rendimiento Actualizado por Confederación</p>
+        </header>
+
+        <div class="table-container bg-white rounded-xl overflow-x-auto border border-gray-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-default w-12 rounded-tl-lg">
+                            #
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b cursor-pointer select-none" onclick="sortTable('confederation')">
+                            Confederación / Equipo <span id="indicator-confederation" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('teams')">
+                            Equipos <span id="indicator-teams" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('played')">
+                            PJ <span id="indicator-played" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('won')">
+                            G <span id="indicator-won" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('drawn')">
+                            E <span id="indicator-drawn" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('lost')">
+                            P <span id="indicator-lost" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('average')">
+                            Prom. <span id="indicator-average" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none" onclick="sortTable('pointsEarned')">
+                            Pts <span id="indicator-pointsEarned" class="text-xs ml-1"></span>
+                        </th>
+                        <th class="p-4 font-semibold text-sm md:text-base border-b text-center cursor-pointer select-none rounded-tr-lg" onclick="sortTable('maxPoints')">
+                            Máx. Pts <span id="indicator-maxPoints" class="text-xs ml-1"></span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="confederation-table-body">
+                </tbody>
+            </table>
+        </div>
+        <p class="text-xs text-gray-500 mt-4">* Haz clic en los encabezados de la tabla para ordenar los datos. Haz clic en el botón "+" junto a una confederación para ver el detalle por país.</p>
+    </div>
+
+    <script>
+        const confederationData = {
+            "AFC": { name: "Asian Football Confederation", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/8/8b/Asian_Football_Confederation_logo.svg/120px-Asian_Football_Confederation_logo.svg.png" },
+            "CAF": { name: "Confederation of African Football", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/CAF_Logo.svg/120px-CAF_Logo.svg.png" },
+            "CONCACAF": { name: "Confederation of North, Central America and Caribbean Association Football", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b2/CONCACAF_logo.svg/120px-CONCACAF_logo.svg.png" },
+            "CONMEBOL": { name: "Confederación Sudamericana de Fútbol", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/e/e0/CONMEBOL_logo.svg/120px-CONMEBOL_logo.svg.png" },
+            "OFC": { name: "Oceania Football Confederation", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/3/3a/Oceania_Football_Confederation_logo.svg/120px-Oceania_Football_Confederation_logo.svg.png" },
+            "UEFA": { name: "Union of European Football Associations", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/UEFA_logo.svg/120px-UEFA_logo.svg.png" }
+        };
+
+        const flagBaseUrl = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/";
+
+        const worldCupGroups = {
+            "Grupo A": [
+                { name: "México", code: "mx", confederation: "CONCACAF", played: 2, won: 2, drawn: 0, lost: 0 },
+                { name: "Corea del Sur", code: "kr", confederation: "AFC", played: 2, won: 1, drawn: 0, lost: 1 },
+                { name: "Chequia", code: "cz", confederation: "UEFA", played: 2, won: 0, drawn: 1, lost: 1 },
+                { name: "Sudáfrica", code: "za", confederation: "CAF", played: 2, won: 0, drawn: 1, lost: 1 }
+            ],
+            "Grupo B": [
+                { name: "Canadá", code: "ca", confederation: "CONCACAF", played: 2, won: 1, drawn: 1, lost: 0 },
+                { name: "Suiza", code: "ch", confederation: "UEFA", played: 2, won: 1, drawn: 1, lost: 0 },
+                { name: "Bosnia y Herzegovina", code: "ba", confederation: "UEFA", played: 2, won: 0, drawn: 1, lost: 1 },
+                { name: "Qatar", code: "qa", confederation: "AFC", played: 2, won: 0, drawn: 1, lost: 1 }
+            ],
+            "Grupo C": [
+                { name: "Brasil", code: "br", confederation: "CONMEBOL", played: 2, won: 1, drawn: 1, lost: 0 },
+                { name: "Marruecos", code: "ma", confederation: "CAF", played: 2, won: 1, drawn: 1, lost: 0 },
+                { name: "Escocia", code: "gb-sct", confederation: "UEFA", played: 2, won: 1, drawn: 0, lost: 1 },
+                { name: "Haití", code: "ht", confederation: "CONCACAF", played: 2, won: 0, drawn: 0, lost: 2 }
+            ],
+            "Grupo D": [
+                { name: "Estados Unidos", code: "us", confederation: "CONCACAF", played: 2, won: 2, drawn: 0, lost: 0 },
+                { name: "Australia", code: "au", confederation: "AFC", played: 2, won: 1, drawn: 0, lost: 1 },
+                { name: "Paraguay", code: "py", confederation: "CONMEBOL", played: 2, won: 1, drawn: 0, lost: 1 },
+                { name: "Turquía", code: "tr", confederation: "UEFA", played: 2, won: 0, drawn: 0, lost: 2 }
+            ],
+            "Grupo E": [
+                { name: "Alemania", code: "de", confederation: "UEFA", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Costa de Marfil", code: "ci", confederation: "CAF", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Ecuador", code: "ec", confederation: "CONMEBOL", played: 1, won: 0, drawn: 0, lost: 1 },
+                { name: "Curazao", code: "cw", confederation: "CONCACAF", played: 1, won: 0, drawn: 0, lost: 1 }
+            ],
+            "Grupo F": [
+                { name: "Suecia", code: "se", confederation: "UEFA", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Japón", code: "jp", confederation: "AFC", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Países Bajos", code: "nl", confederation: "UEFA", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Túnez", code: "tn", confederation: "CAF", played: 1, won: 0, drawn: 0, lost: 1 }
+            ],
+            "Grupo G": [
+                { name: "Nueva Zelanda", code: "nz", confederation: "OFC", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Irán", code: "ir", confederation: "AFC", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Bélgica", code: "be", confederation: "UEFA", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Egipto", code: "eg", confederation: "CAF", played: 1, won: 0, drawn: 1, lost: 0 }
+            ],
+            "Grupo H": [
+                { name: "Uruguay", code: "uy", confederation: "CONMEBOL", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Arabia Saudita", code: "sa", confederation: "AFC", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "España", code: "es", confederation: "UEFA", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Cabo Verde", code: "cv", confederation: "CAF", played: 1, won: 0, drawn: 1, lost: 0 }
+            ],
+            "Grupo I": [
+                { name: "Noruega", code: "no", confederation: "UEFA", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Francia", code: "fr", confederation: "UEFA", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Senegal", code: "sn", confederation: "CAF", played: 1, won: 0, drawn: 0, lost: 1 },
+                { name: "Irak", code: "iq", confederation: "AFC", played: 1, won: 0, drawn: 0, lost: 1 }
+            ],
+            "Grupo J": [
+                { name: "Argentina", code: "ar", confederation: "CONMEBOL", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Austria", code: "at", confederation: "UEFA", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Jordania", code: "jo", confederation: "AFC", played: 1, won: 0, drawn: 0, lost: 1 },
+                { name: "Argelia", code: "dz", confederation: "CAF", played: 1, won: 0, drawn: 0, lost: 1 }
+            ],
+            "Grupo K": [
+                { name: "Colombia", code: "co", confederation: "CONMEBOL", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "RD Congo", code: "cd", confederation: "CAF", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Portugal", code: "pt", confederation: "UEFA", played: 1, won: 0, drawn: 1, lost: 0 },
+                { name: "Uzbekistán", code: "uz", confederation: "AFC", played: 1, won: 0, drawn: 0, lost: 1 }
+            ],
+            "Grupo L": [
+                { name: "Inglaterra", code: "gb-eng", confederation: "UEFA", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Ghana", code: "gh", confederation: "CAF", played: 1, won: 1, drawn: 0, lost: 0 },
+                { name: "Panamá", code: "pa", confederation: "CONCACAF", played: 1, won: 0, drawn: 0, lost: 1 },
+                { name: "Croacia", code: "hr", confederation: "UEFA", played: 1, won: 0, drawn: 0, lost: 1 }
+            ]
+        };
+
+        let aggregatedData = [];
+        let currentSortColumn = 'average';
+        let currentSortDirection = 'desc';
+        let expandedConfederations = new Set();
+
+        function initializeData() {
+            const stats = {
+                "AFC": { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] },
+                "UEFA": { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] },
+                "CONCACAF": { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] },
+                "OFC": { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] },
+                "CAF": { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] },
+                "CONMEBOL": { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] }
+            };
+
+            for (const group in worldCupGroups) {
+                worldCupGroups[group].forEach(team => {
+                    if (stats[team.confederation]) {
+                        stats[team.confederation].teams += 1;
+                        stats[team.confederation].played += team.played;
+                        stats[team.confederation].won += team.won;
+                        stats[team.confederation].drawn += team.drawn;
+                        stats[team.confederation].lost += team.lost;
+
+                        const teamPointsEarned = (team.won * 3) + (team.drawn * 1);
+                        const teamMaxPoints = team.played * 3;
+                        const teamAverage = team.played > 0 ? (teamPointsEarned / team.played) : 0;
+
+                        stats[team.confederation].teamList.push({
+                            name: team.name,
+                            code: team.code,
+                            played: team.played,
+                            won: team.won,
+                            drawn: team.drawn,
+                            lost: team.lost,
+                            pointsEarned: teamPointsEarned,
+                            maxPoints: teamMaxPoints,
+                            average: parseFloat(teamAverage.toFixed(2))
+                        });
+                    }
+                });
+            }
+
+            aggregatedData = Object.keys(stats).map(confed => {
+                const data = stats[confed];
+                const pointsEarned = (data.won * 3) + (data.drawn * 1);
+                const maxPossiblePoints = data.played * 3;
+                const averagePoints = data.played > 0 ? (pointsEarned / data.played) : 0;
+
+                data.teamList.sort((a, b) => b.pointsEarned - a.pointsEarned || b.average - a.average);
+
+                return {
+                    confederation: confed,
+                    teams: data.teams,
+                    played: data.played,
+                    won: data.won,
+                    drawn: data.drawn,
+                    lost: data.lost,
+                    average: parseFloat(averagePoints.toFixed(2)),
+                    pointsEarned: pointsEarned,
+                    maxPoints: maxPossiblePoints,
+                    teamList: data.teamList
+                };
+            });
+
+            renderTable();
+        }
+
+        function sortTable(column) {
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = column === 'confederation' ? 'asc' : 'desc';
+            }
+            renderTable();
+        }
+
+        function updateSortIndicators() {
+            const columns = ['confederation', 'teams', 'played', 'won', 'drawn', 'lost', 'average', 'pointsEarned', 'maxPoints'];
+            columns.forEach(col => {
+                const indicator = document.getElementById(`indicator-${col}`);
+                if (indicator) {
+                    indicator.textContent = '';
+                }
+            });
+
+            const activeIndicator = document.getElementById(`indicator-${currentSortColumn}`);
+            if (activeIndicator) {
+                activeIndicator.textContent = currentSortDirection === 'asc' ? '↑' : '↓';
+            }
+        }
+
+        function toggleExpand(confed) {
+            if (expandedConfederations.has(confed)) {
+                expandedConfederations.delete(confed);
+            } else {
+                expandedConfederations.add(confed);
+            }
+            renderTable();
+        }
+
+        function renderTable() {
+            aggregatedData.sort((a, b) => {
+                let valA = a[currentSortColumn];
+                let valB = b[currentSortColumn];
+
+                if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const tbody = document.getElementById('confederation-table-body');
+            tbody.innerHTML = '';
+
+            aggregatedData.forEach((data, index) => {
+                const isExpanded = expandedConfederations.has(data.confederation);
+                const confedInfo = confederationData[data.confederation] || { name: '', logo: '' };
+                
+                const tr = document.createElement('tr');
+                tr.className = "main-row border-b border-gray-200 text-gray-700 transition-colors duration-200";
+
+                tr.innerHTML = `
+                    <td class="p-4 text-center font-bold text-gray-500 bg-gray-50">
+                        ${index + 1}
+                    </td>
+                    <td class="p-4 cursor-pointer" onclick="toggleExpand('${data.confederation}')">
+                        <div class="flex items-center gap-4">
+                            <button class="toggle-btn w-6 h-6 flex-shrink-0 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full font-bold text-sm shadow-sm" aria-label="Expandir/Contraer">
+                                ${isExpanded ? '-' : '+'}
+                            </button>
+                            <img src="${confedInfo.logo}" alt="Logo ${data.confederation}" class="confed-logo" onerror="this.style.display='none'">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-900">${data.confederation}</span>
+                                <span class="text-xs text-gray-500 font-normal mt-0.5">${confedInfo.name}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-center font-medium text-blue-700">${data.teams}</td>
+                    <td class="p-4 text-center font-medium">${data.played}</td>
+                    <td class="p-4 text-center text-green-600 font-bold">${data.won}</td>
+                    <td class="p-4 text-center text-yellow-600 font-bold">${data.drawn}</td>
+                    <td class="p-4 text-center text-red-600 font-bold">${data.lost}</td>
+                    <td class="p-4 text-center font-mono bg-blue-50 text-blue-900 font-bold">${data.average.toFixed(2)}</td>
+                    <td class="p-4 text-center font-mono text-gray-800 font-semibold">${data.pointsEarned}</td>
+                    <td class="p-4 text-center font-mono text-gray-500">${data.maxPoints}</td>
+                `;
+
+                tbody.appendChild(tr);
+
+                if (isExpanded) {
+                    data.teamList.forEach((team) => {
+                        const childTr = document.createElement('tr');
+                        childTr.className = "border-b border-gray-100 bg-gray-50/80 text-gray-700 text-sm hover:bg-gray-100 transition-colors duration-150";
+                        
+                        childTr.innerHTML = `
+                            <td class="p-3 text-center"></td>
+                            <td class="p-3 pl-16 flex items-center gap-3">
+                                <img src="${flagBaseUrl}${team.code}.svg" alt="Bandera de ${team.name}" class="country-flag" onerror="this.style.display='none'">
+                                <span class="font-medium">${team.name}</span>
+                            </td>
+                            <td class="p-3 text-center text-gray-400">-</td>
+                            <td class="p-3 text-center">${team.played}</td>
+                            <td class="p-3 text-center text-green-600/80">${team.won}</td>
+                            <td class="p-3 text-center text-yellow-600/80">${team.drawn}</td>
+                            <td class="p-3 text-center text-red-600/80">${team.lost}</td>
+                            <td class="p-3 text-center font-mono">${team.average.toFixed(2)}</td>
+                            <td class="p-3 text-center font-mono font-semibold text-gray-700">${team.pointsEarned}</td>
+                            <td class="p-3 text-center font-mono text-gray-400">${team.maxPoints}</td>
+                        `;
+                        tbody.appendChild(childTr);
+                    });
+                }
+            });
+
+            updateSortIndicators();
+        }
+
+        window.onload = initializeData;
+    </script>
+</body>
+</html>
