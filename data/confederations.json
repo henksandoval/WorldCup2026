@@ -1,0 +1,26 @@
+{
+  "AFC": {
+    "name": "Asian Football Confederation",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/5/59/Asian_Football_Confederation_emblem.svg"
+  },
+  "CAF": {
+    "name": "Confederation of African Football",
+    "logo": "https://upload.wikimedia.org/wikipedia/sco/7/72/Confederation_of_African_Football_logo.svg"
+  },
+  "CONCACAF": {
+    "name": "Confederation of North, Central America and Caribbean Association Football",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/8/87/Concacaf_logo.svg"
+  },
+  "CONMEBOL": {
+    "name": "Confederación Sudamericana de Fútbol",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Official_Image_of_CONMEBOL.svg"
+  },
+  "OFC": {
+    "name": "Oceania Football Confederation",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/9/93/Oceania_Football_Confederation_logo.svg"
+  },
+  "UEFA": {
+    "name": "Union of European Football Associations",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/b/b5/UEFA_logo.svg"
+  }
+}

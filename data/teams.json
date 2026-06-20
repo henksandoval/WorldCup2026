@@ -1,0 +1,74 @@
+{
+  "Grupo A": [
+    { "name": "México", "code": "mx", "confederation": "CONCACAF", "played": 2, "won": 2, "drawn": 0, "lost": 0 },
+    { "name": "Corea del Sur", "code": "kr", "confederation": "AFC", "played": 2, "won": 1, "drawn": 0, "lost": 1 },
+    { "name": "Chequia", "code": "cz", "confederation": "UEFA", "played": 2, "won": 0, "drawn": 1, "lost": 1 },
+    { "name": "Sudáfrica", "code": "za", "confederation": "CAF", "played": 2, "won": 0, "drawn": 1, "lost": 1 }
+  ],
+  "Grupo B": [
+    { "name": "Canadá", "code": "ca", "confederation": "CONCACAF", "played": 2, "won": 1, "drawn": 1, "lost": 0 },
+    { "name": "Suiza", "code": "ch", "confederation": "UEFA", "played": 2, "won": 1, "drawn": 1, "lost": 0 },
+    { "name": "Bosnia y Herzegovina", "code": "ba", "confederation": "UEFA", "played": 2, "won": 0, "drawn": 1, "lost": 1 },
+    { "name": "Qatar", "code": "qa", "confederation": "AFC", "played": 2, "won": 0, "drawn": 1, "lost": 1 }
+  ],
+  "Grupo C": [
+    { "name": "Brasil", "code": "br", "confederation": "CONMEBOL", "played": 2, "won": 1, "drawn": 1, "lost": 0 },
+    { "name": "Marruecos", "code": "ma", "confederation": "CAF", "played": 2, "won": 1, "drawn": 1, "lost": 0 },
+    { "name": "Escocia", "code": "gb-sct", "confederation": "UEFA", "played": 2, "won": 1, "drawn": 0, "lost": 1 },
+    { "name": "Haití", "code": "ht", "confederation": "CONCACAF", "played": 2, "won": 0, "drawn": 0, "lost": 2 }
+  ],
+  "Grupo D": [
+    { "name": "Estados Unidos", "code": "us", "confederation": "CONCACAF", "played": 2, "won": 2, "drawn": 0, "lost": 0 },
+    { "name": "Australia", "code": "au", "confederation": "AFC", "played": 2, "won": 1, "drawn": 0, "lost": 1 },
+    { "name": "Paraguay", "code": "py", "confederation": "CONMEBOL", "played": 2, "won": 1, "drawn": 0, "lost": 1 },
+    { "name": "Turquía", "code": "tr", "confederation": "UEFA", "played": 2, "won": 0, "drawn": 0, "lost": 2 }
+  ],
+  "Grupo E": [
+    { "name": "Alemania", "code": "de", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Costa de Marfil", "code": "ci", "confederation": "CAF", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Ecuador", "code": "ec", "confederation": "CONMEBOL", "played": 1, "won": 0, "drawn": 0, "lost": 1 },
+    { "name": "Curazao", "code": "cw", "confederation": "CONCACAF", "played": 1, "won": 0, "drawn": 0, "lost": 1 }
+  ],
+  "Grupo F": [
+    { "name": "Suecia", "code": "se", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Japón", "code": "jp", "confederation": "AFC", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Países Bajos", "code": "nl", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Túnez", "code": "tn", "confederation": "CAF", "played": 1, "won": 0, "drawn": 0, "lost": 1 }
+  ],
+  "Grupo G": [
+    { "name": "Nueva Zelanda", "code": "nz", "confederation": "OFC", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Irán", "code": "ir", "confederation": "AFC", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Bélgica", "code": "be", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Egipto", "code": "eg", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0 }
+  ],
+  "Grupo H": [
+    { "name": "Uruguay", "code": "uy", "confederation": "CONMEBOL", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Arabia Saudita", "code": "sa", "confederation": "AFC", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "España", "code": "es", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Cabo Verde", "code": "cv", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0 }
+  ],
+  "Grupo I": [
+    { "name": "Noruega", "code": "no", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Francia", "code": "fr", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Senegal", "code": "sn", "confederation": "CAF", "played": 1, "won": 0, "drawn": 0, "lost": 1 },
+    { "name": "Irak", "code": "iq", "confederation": "AFC", "played": 1, "won": 0, "drawn": 0, "lost": 1 }
+  ],
+  "Grupo J": [
+    { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Austria", "code": "at", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Jordania", "code": "jo", "confederation": "AFC", "played": 1, "won": 0, "drawn": 0, "lost": 1 },
+    { "name": "Argelia", "code": "dz", "confederation": "CAF", "played": 1, "won": 0, "drawn": 0, "lost": 1 }
+  ],
+  "Grupo K": [
+    { "name": "Colombia", "code": "co", "confederation": "CONMEBOL", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "RD Congo", "code": "cd", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Portugal", "code": "pt", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 1, "lost": 0 },
+    { "name": "Uzbekistán", "code": "uz", "confederation": "AFC", "played": 1, "won": 0, "drawn": 0, "lost": 1 }
+  ],
+  "Grupo L": [
+    { "name": "Inglaterra", "code": "gb-eng", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Ghana", "code": "gh", "confederation": "CAF", "played": 1, "won": 1, "drawn": 0, "lost": 0 },
+    { "name": "Panamá", "code": "pa", "confederation": "CONCACAF", "played": 1, "won": 0, "drawn": 0, "lost": 1 },
+    { "name": "Croacia", "code": "hr", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 0, "lost": 1 }
+  ]
+}

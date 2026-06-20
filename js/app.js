@@ -1,0 +1,496 @@
+const DATA_BASE_PATH = "data/";
+const CONFEDERATIONS_FILE = `${DATA_BASE_PATH}confederations.json`;
+const TEAMS_FILE = `${DATA_BASE_PATH}teams.json`;
+const FLAG_BASE_URL = "https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/";
+
+let confederationData = {};
+let worldCupGroups = {};
+let aggregatedData = [];
+let currentSortColumn = "average";
+let currentSortDirection = "desc";
+const expandedConfederations = new Set();
+
+/**
+ * Fetch JSON data from a URL.
+ * @param {string} url
+ * @returns {Promise<any>}
+ */
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+/**
+ * Load confederation and team data in parallel.
+ */
+async function loadData() {
+  const tbody = document.getElementById("confederation-table-body");
+  try {
+    [confederationData, worldCupGroups] = await Promise.all([
+      fetchJSON(CONFEDERATIONS_FILE),
+      fetchJSON(TEAMS_FILE),
+    ]);
+    initializeData();
+  } catch (error) {
+    console.error("Error cargando datos:", error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" class="error-state">
+          <p><strong>Error al cargar los datos</strong></p>
+          <p>${escapeHTML(error.message)}</p>
+          <p style="margin-top:1rem;font-size:0.8rem;color:var(--color-text-dim)">
+            Asegúrate de estar ejecutando un servidor local<br>
+            (ej: <code>python -m http.server</code> o <code>npx serve .</code>)
+          </p>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+/**
+ * Escape HTML special characters to prevent XSS.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHTML(str) {
+  const div = document.createElement("div");
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+/**
+ * Aggregate team stats by confederation.
+ */
+function initializeData() {
+  const stats = {};
+  for (const key of Object.keys(confederationData)) {
+    stats[key] = { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] };
+  }
+
+  for (const group of Object.values(worldCupGroups)) {
+    for (const team of group) {
+      const s = stats[team.confederation];
+      if (!s) continue;
+
+      s.teams += 1;
+      s.played += team.played;
+      s.won += team.won;
+      s.drawn += team.drawn;
+      s.lost += team.lost;
+
+      const pointsEarned = team.won * 3 + team.drawn;
+      const maxPoints = team.played * 3;
+      const average = team.played > 0 ? pointsEarned / team.played : 0;
+
+      s.teamList.push({
+        name: team.name,
+        code: team.code,
+        played: team.played,
+        won: team.won,
+        drawn: team.drawn,
+        lost: team.lost,
+        pointsEarned,
+        maxPoints,
+        average: +average.toFixed(2),
+      });
+    }
+  }
+
+  aggregatedData = Object.keys(stats).map((confed) => {
+    const d = stats[confed];
+    const pointsEarned = d.won * 3 + d.drawn;
+    const maxPoints = d.played * 3;
+    const average = d.played > 0 ? pointsEarned / d.played : 0;
+
+    d.teamList.sort((a, b) => b.pointsEarned - a.pointsEarned || b.average - a.average);
+
+    return {
+      confederation: confed,
+      teams: d.teams,
+      played: d.played,
+      won: d.won,
+      drawn: d.drawn,
+      lost: d.lost,
+      average: +average.toFixed(2),
+      pointsEarned,
+      maxPoints,
+      teamList: d.teamList,
+    };
+  });
+
+  renderTable();
+}
+
+/**
+ * Handle column sort on click or keyboard activation.
+ * @param {string} column
+ */
+function sortTable(column) {
+  if (currentSortColumn === column) {
+    currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+  } else {
+    currentSortColumn = column;
+    currentSortDirection = column === "confederation" ? "asc" : "desc";
+  }
+
+  expandedConfederations.clear();
+
+  const tbody = document.getElementById("confederation-table-body");
+  tbody.classList.add("sorting");
+  renderTable();
+  announceSort();
+
+  setTimeout(() => tbody.classList.remove("sorting"), 300);
+}
+
+/**
+ * Announce sort change to screen readers via live region.
+ */
+function announceSort() {
+  const liveRegion = document.getElementById("sort-announcer");
+  if (liveRegion) {
+    const label = currentSortColumn;
+    const dir = currentSortDirection === "asc" ? "ascendente" : "descendente";
+    liveRegion.textContent = `Ordenado por ${label} ${dir}`;
+  }
+}
+
+/**
+ * Toggle expanded state for a confederation row.
+ * Performs a differential DOM update with animations.
+ * @param {string} confed
+ */
+function toggleExpand(confed) {
+  const tbody = document.getElementById("confederation-table-body");
+  const confedRow = tbody.querySelector(`tr[data-confed="${confed}"]`);
+  if (!confedRow) return;
+
+  const isCurrentlyExpanded = expandedConfederations.has(confed);
+
+  if (isCurrentlyExpanded) {
+    expandedConfederations.delete(confed);
+    confedRow.setAttribute("aria-expanded", "false");
+
+    const toggleBtn = confedRow.querySelector(".confed-toggle");
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-expanded", "false");
+      toggleBtn.setAttribute("aria-label", `Expandir ${confed}`);
+    }
+
+    const teamRows = [];
+    let next = confedRow.nextElementSibling;
+    while (next && next.classList.contains("team-row")) {
+      teamRows.push(next);
+      next = next.nextElementSibling;
+    }
+
+    if (teamRows.length === 0) return;
+
+    teamRows.forEach((row, i) => {
+      row.style.animationDelay = `${i * 0.03}s`;
+      row.classList.add("row-exiting");
+    });
+
+    const lastRow = teamRows[teamRows.length - 1];
+    const onEnd = () => {
+      lastRow.removeEventListener("animationend", onEnd);
+      teamRows.forEach((row) => row.remove());
+    };
+    lastRow.addEventListener("animationend", onEnd, { once: true });
+
+    setTimeout(() => {
+      if (teamRows[0]?.parentNode) {
+        teamRows.forEach((row) => row.remove());
+      }
+    }, 400);
+
+  } else {
+    expandedConfederations.add(confed);
+    confedRow.setAttribute("aria-expanded", "true");
+
+    const toggleBtn = confedRow.querySelector(".confed-toggle");
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-expanded", "true");
+      toggleBtn.setAttribute("aria-label", `Contraer ${confed}`);
+    }
+
+    confedRow.classList.add("row-flash");
+    setTimeout(() => confedRow.classList.remove("row-flash"), 600);
+
+    const data = aggregatedData.find((d) => d.confederation === confed);
+    if (!data) return;
+
+    let insertBefore = confedRow.nextElementSibling;
+
+    const fragment = document.createDocumentFragment();
+    for (const team of data.teamList) {
+      const childTr = document.createElement("tr");
+      childTr.className = "team-row row-entering";
+      childTr.setAttribute("role", "row");
+
+      childTr.innerHTML = `
+        <td></td>
+        <td>
+          <div class="team-name-cell">
+            <img src="${FLAG_BASE_URL}${escapeHTML(team.code)}.svg"
+                 alt="Bandera de ${escapeHTML(team.name)}"
+                 class="country-flag"
+                 loading="lazy"
+                 width="22"
+                 height="16"
+                 onerror="this.style.display='none'">
+            <span>${escapeHTML(team.name)}</span>
+          </div>
+        </td>
+        <td class="col-center"><span class="team-label">-</span></td>
+        <td class="col-center">${team.played}</td>
+        <td class="col-center"><span class="stat-cell stat-cell--won">${team.won}</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--drawn">${team.drawn}</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--lost">${team.lost}</span></td>
+        <td class="col-center"><span class="stat-cell">${team.average.toFixed(2)}</span></td>
+        <td class="col-center"><span class="stat-cell">${team.pointsEarned}</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--muted">${team.maxPoints}</span></td>
+      `;
+      fragment.appendChild(childTr);
+    }
+
+    if (insertBefore) {
+      tbody.insertBefore(fragment, insertBefore);
+    } else {
+      tbody.appendChild(fragment);
+    }
+
+    const newRows = [];
+    let sib = confedRow.nextElementSibling;
+    while (sib && sib.classList.contains("team-row")) {
+      newRows.push(sib);
+      sib = sib.nextElementSibling;
+    }
+    if (newRows.length > 0) {
+      const cleanup = () => {
+        newRows[0].removeEventListener("animationend", cleanup);
+        newRows.forEach((r) => r.classList.remove("row-entering"));
+      };
+      newRows[0].addEventListener("animationend", cleanup, { once: true });
+      setTimeout(() => {
+        if (newRows[0]?.parentNode) {
+          newRows.forEach((r) => r.classList.remove("row-entering"));
+        }
+      }, 500);
+    }
+  }
+}
+
+/**
+ * Render sort indicators on column headers.
+ */
+function updateSortIndicators() {
+  const columns = ["confederation", "teams", "played", "won", "drawn", "lost", "average", "pointsEarned", "maxPoints"];
+
+  for (const col of columns) {
+    const th = document.querySelector(`th[data-column="${col}"]`);
+    if (!th) continue;
+
+    if (col === currentSortColumn) {
+      th.setAttribute("aria-sort", currentSortDirection === "asc" ? "ascending" : "descending");
+    } else {
+      th.removeAttribute("aria-sort");
+    }
+
+    const indicator = th.querySelector(".sort-indicator");
+    if (indicator) {
+      indicator.textContent = col === currentSortColumn
+        ? currentSortDirection === "asc" ? "\u2191" : "\u2193"
+        : "\u2195";
+    }
+  }
+}
+
+/**
+ * Render the full table content.
+ */
+function renderTable() {
+  aggregatedData.sort((a, b) => {
+    const valA = a[currentSortColumn];
+    const valB = b[currentSortColumn];
+    const cmp = valA < valB ? -1 : valA > valB ? 1 : 0;
+    return currentSortDirection === "asc" ? cmp : -cmp;
+  });
+
+  const tbody = document.getElementById("confederation-table-body");
+  tbody.innerHTML = "";
+
+  aggregatedData.forEach((data, index) => {
+    const isExpanded = expandedConfederations.has(data.confederation);
+    const confedInfo = confederationData[data.confederation] || { name: "", logo: "" };
+
+    const tr = document.createElement("tr");
+    tr.className = "confed-row";
+    tr.setAttribute("tabindex", "0");
+    tr.setAttribute("role", "row");
+    tr.setAttribute("data-confed", data.confederation);
+    tr.setAttribute("aria-expanded", String(isExpanded));
+    tr.setAttribute("aria-label", `${data.confederation} - ${data.teams} equipos, ${data.pointsEarned} puntos`);
+
+    tr.innerHTML = `
+      <td class="col-rank">${index + 1}</td>
+      <td>
+        <div class="confed-row__cell">
+          <button class="confed-toggle"
+                  aria-label="Expandir ${escapeHTML(data.confederation)}"
+                  aria-expanded="${isExpanded}"
+                  data-confed="${data.confederation}">
+            +
+          </button>
+          <span class="confed-logo-wrap">
+            <img src="${escapeHTML(confedInfo.logo)}"
+                 alt="Logo de ${escapeHTML(data.confederation)}"
+                 class="confed-logo"
+                 loading="lazy"
+                 width="28"
+                 height="28"
+                 onerror="this.style.display='none'">
+          </span>
+          <div class="confed-info">
+            <span class="confed-name">${escapeHTML(data.confederation)}</span>
+            <span class="confed-fullname">${escapeHTML(confedInfo.name)}</span>
+          </div>
+        </div>
+      </td>
+      <td class="col-center"><span class="stat-cell">${data.teams}</span></td>
+      <td class="col-center"><span class="stat-cell">${data.played}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--won">${data.won}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--drawn">${data.drawn}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--lost">${data.lost}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--accent">${data.average.toFixed(2)}</span></td>
+      <td class="col-center"><span class="stat-cell">${data.pointsEarned}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--muted">${data.maxPoints}</span></td>
+    `;
+
+    tbody.appendChild(tr);
+
+    const toggleBtn = tr.querySelector(".confed-toggle");
+    toggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleExpand(data.confederation);
+    });
+
+    tr.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleExpand(data.confederation);
+      }
+    });
+
+    if (isExpanded) {
+      for (const team of data.teamList) {
+        const childTr = document.createElement("tr");
+        childTr.className = "team-row";
+        childTr.setAttribute("role", "row");
+
+        childTr.innerHTML = `
+          <td></td>
+          <td>
+            <div class="team-name-cell">
+              <img src="${FLAG_BASE_URL}${escapeHTML(team.code)}.svg"
+                   alt="Bandera de ${escapeHTML(team.name)}"
+                   class="country-flag"
+                   loading="lazy"
+                   width="22"
+                   height="16"
+                   onerror="this.style.display='none'">
+              <span>${escapeHTML(team.name)}</span>
+            </div>
+          </td>
+          <td class="col-center"><span class="team-label">-</span></td>
+          <td class="col-center">${team.played}</td>
+          <td class="col-center"><span class="stat-cell stat-cell--won">${team.won}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--drawn">${team.drawn}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--lost">${team.lost}</span></td>
+          <td class="col-center"><span class="stat-cell">${team.average.toFixed(2)}</span></td>
+          <td class="col-center"><span class="stat-cell">${team.pointsEarned}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--muted">${team.maxPoints}</span></td>
+        `;
+
+        tbody.appendChild(childTr);
+      }
+    }
+  });
+
+  updateSortIndicators();
+}
+
+/**
+ * Initialize event listeners for sortable column headers.
+ */
+function initSortListeners() {
+  const headers = document.querySelectorAll("th[data-sortable]");
+  for (const th of headers) {
+    const column = th.dataset.column;
+
+    th.addEventListener("click", () => sortTable(column));
+
+    th.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        sortTable(column);
+      }
+    });
+  }
+}
+
+/**
+ * Initialize theme toggle.
+ */
+function initTheme() {
+  const root = document.documentElement;
+  const toggle = document.getElementById("theme-toggle");
+  if (!toggle) return;
+
+  const stored = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const initial = stored || (prefersDark ? "dark" : "light");
+
+  root.setAttribute("data-theme", initial);
+  updateToggleAria(toggle, initial);
+
+  toggle.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    updateToggleAria(toggle, next);
+  });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("theme")) {
+      const next = e.matches ? "dark" : "light";
+      root.setAttribute("data-theme", next);
+      updateToggleAria(toggle, next);
+    }
+  });
+}
+
+/**
+ * Update toggle button ARIA state and label.
+ * @param {HTMLButtonElement} btn
+ * @param {string} theme
+ */
+function updateToggleAria(btn, theme) {
+  const isDark = theme === "dark";
+  btn.setAttribute("aria-checked", String(!isDark));
+  btn.setAttribute("aria-label", isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+}
+
+/**
+ * Bootstrap the application once the DOM is fully loaded.
+ */
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  initSortListeners();
+  loadData();
+});
