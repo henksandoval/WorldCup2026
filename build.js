@@ -67,7 +67,7 @@ function aggregateData(confederationData, worldCupGroups) {
 
   // Initialise counters for every known confederation
   for (const key of Object.keys(confederationData)) {
-    stats[key] = { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, teamList: [] };
+    stats[key] = { teams: 0, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, gc: 0, teamList: [] };
   }
 
   // Walk every team in every group
@@ -81,6 +81,8 @@ function aggregateData(confederationData, worldCupGroups) {
       s.won += team.won;
       s.drawn += team.drawn;
       s.lost += team.lost;
+      s.gf += team.gf || 0;
+      s.gc += team.gc || 0;
 
       const pointsEarned = team.won * 3 + team.drawn;
       const maxPoints = team.played * 3;
@@ -93,6 +95,9 @@ function aggregateData(confederationData, worldCupGroups) {
         won: team.won,
         drawn: team.drawn,
         lost: team.lost,
+        gf: team.gf || 0,
+        gc: team.gc || 0,
+        dg: (team.gf || 0) - (team.gc || 0),
         pointsEarned,
         maxPoints,
         average: +average.toFixed(2),
@@ -106,6 +111,9 @@ function aggregateData(confederationData, worldCupGroups) {
     const pointsEarned = d.won * 3 + d.drawn;
     const maxPoints = d.played * 3;
     const average = d.played > 0 ? pointsEarned / d.played : 0;
+    const gf = d.gf;
+    const gc = d.gc;
+    const dg = gf - gc;
 
     // Sort team list by points then average (descending)
     d.teamList.sort(
@@ -119,6 +127,9 @@ function aggregateData(confederationData, worldCupGroups) {
       won: d.won,
       drawn: d.drawn,
       lost: d.lost,
+      gf,
+      gc,
+      dg,
       average: +average.toFixed(2),
       pointsEarned,
       maxPoints,
@@ -135,6 +146,23 @@ function aggregateData(confederationData, worldCupGroups) {
 // ---------------------------------------------------------------------------
 // 4. Generate HTML rows
 // ---------------------------------------------------------------------------
+
+function renderDG(dg) {
+  const sign = dg > 0 ? "+" : "";
+  const cls = dg > 0 ? "stat-cell--dg-pos" : dg < 0 ? "stat-cell--dg-neg" : "stat-cell--dg-zero";
+  return `<span class="stat-cell stat-cell--dg ${cls}">${sign}${dg}</span>`;
+}
+
+function renderAvgWithBar(avg) {
+  const pct = Math.min(100, Math.round((avg / 3) * 100));
+  return `
+    <span class="avg-cell">
+      <span class="avg-cell__value">${avg.toFixed(2)}</span>
+      <span class="avg-cell__bar-track" aria-hidden="true">
+        <span class="avg-cell__bar-fill" style="width:${pct}%"></span>
+      </span>
+    </span>`;
+}
 
 /**
  * Builds the <tr> for a single confederation row.
@@ -179,7 +207,10 @@ function buildConfedRow(data, index, confedInfo) {
           <td class="col-center"><span class="stat-cell stat-cell--won">${data.won}</span></td>
           <td class="col-center"><span class="stat-cell stat-cell--drawn">${data.drawn}</span></td>
           <td class="col-center"><span class="stat-cell stat-cell--lost">${data.lost}</span></td>
-          <td class="col-center"><span class="stat-cell stat-cell--accent">${data.average.toFixed(2)}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--gf">${data.gf}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--gc">${data.gc}</span></td>
+          <td class="col-center">${renderDG(data.dg)}</td>
+          <td class="col-center">${renderAvgWithBar(data.average)}</td>
           <td class="col-center"><span class="stat-cell">${data.pointsEarned}</span></td>
           <td class="col-center"><span class="stat-cell stat-cell--muted">${data.maxPoints}</span></td>
         </tr>`;
