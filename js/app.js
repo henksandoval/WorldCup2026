@@ -91,6 +91,8 @@ function aggregateFromJSON(confData, groups) {
       s.won += team.won;
       s.drawn += team.drawn;
       s.lost += team.lost;
+      s.gf = (s.gf || 0) + (team.gf || 0);
+      s.gc = (s.gc || 0) + (team.gc || 0);
 
       const pointsEarned = team.won * 3 + team.drawn;
       const maxPoints = team.played * 3;
@@ -103,6 +105,9 @@ function aggregateFromJSON(confData, groups) {
         won: team.won,
         drawn: team.drawn,
         lost: team.lost,
+        gf: team.gf || 0,
+        gc: team.gc || 0,
+        dg: (team.gf || 0) - (team.gc || 0),
         pointsEarned,
         maxPoints,
         average: +average.toFixed(2),
@@ -115,6 +120,9 @@ function aggregateFromJSON(confData, groups) {
     const pointsEarned = d.won * 3 + d.drawn;
     const maxPoints = d.played * 3;
     const average = d.played > 0 ? pointsEarned / d.played : 0;
+    const gf = d.gf || 0;
+    const gc = d.gc || 0;
+    const dg = gf - gc;
     d.teamList.sort((a, b) => b.pointsEarned - a.pointsEarned || b.average - a.average);
     return {
       confederation: confed,
@@ -123,6 +131,9 @@ function aggregateFromJSON(confData, groups) {
       won: d.won,
       drawn: d.drawn,
       lost: d.lost,
+      gf,
+      gc,
+      dg,
       average: +average.toFixed(2),
       pointsEarned,
       maxPoints,
@@ -180,6 +191,35 @@ function announceSort() {
 }
 
 // ---------------------------------------------------------------------------
+// Render helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Renders the goal difference (DG) cell with color-coded badge.
+ * Positive = green glow, Negative = red, Zero = muted.
+ */
+function renderDG(dg) {
+  const sign = dg > 0 ? "+" : "";
+  const cls = dg > 0 ? "stat-cell--dg-pos" : dg < 0 ? "stat-cell--dg-neg" : "stat-cell--dg-zero";
+  return `<span class="stat-cell stat-cell--dg ${cls}">${sign}${dg}</span>`;
+}
+
+/**
+ * Renders the average (Prom.) cell with a mini progress bar.
+ * Max possible value is 3.0 (pts per game played), so bar fills proportionally.
+ */
+function renderAvgWithBar(avg) {
+  const pct = Math.min(100, Math.round((avg / 3) * 100));
+  return `
+    <span class="avg-cell">
+      <span class="avg-cell__value">${avg.toFixed(2)}</span>
+      <span class="avg-cell__bar-track" aria-hidden="true">
+        <span class="avg-cell__bar-fill" style="width:${pct}%"></span>
+      </span>
+    </span>`;
+}
+
+// ---------------------------------------------------------------------------
 // Render (re-render from aggregated data, NOT from DOM)
 // ---------------------------------------------------------------------------
 
@@ -234,7 +274,10 @@ function renderTable() {
       <td class="col-center"><span class="stat-cell stat-cell--won">${data.won}</span></td>
       <td class="col-center"><span class="stat-cell stat-cell--drawn">${data.drawn}</span></td>
       <td class="col-center"><span class="stat-cell stat-cell--lost">${data.lost}</span></td>
-      <td class="col-center"><span class="stat-cell stat-cell--accent">${data.average.toFixed(2)}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--gf">${data.gf}</span></td>
+      <td class="col-center"><span class="stat-cell stat-cell--gc">${data.gc}</span></td>
+      <td class="col-center">${renderDG(data.dg)}</td>
+      <td class="col-center">${renderAvgWithBar(data.average)}</td>
       <td class="col-center"><span class="stat-cell">${data.pointsEarned}</span></td>
       <td class="col-center"><span class="stat-cell stat-cell--muted">${data.maxPoints}</span></td>
     `;
@@ -283,6 +326,9 @@ function renderTable() {
           <td class="col-center"><span class="stat-cell stat-cell--won">${team.won}</span></td>
           <td class="col-center"><span class="stat-cell stat-cell--drawn">${team.drawn}</span></td>
           <td class="col-center"><span class="stat-cell stat-cell--lost">${team.lost}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--gf">${team.gf}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--gc">${team.gc}</span></td>
+          <td class="col-center">${renderDG(team.dg)}</td>
           <td class="col-center"><span class="stat-cell">${team.average.toFixed(2)}</span></td>
           <td class="col-center"><span class="stat-cell">${team.pointsEarned}</span></td>
           <td class="col-center"><span class="stat-cell stat-cell--muted">${team.maxPoints}</span></td>
@@ -391,6 +437,9 @@ function toggleExpand(confed) {
         <td class="col-center"><span class="stat-cell stat-cell--won">${team.won}</span></td>
         <td class="col-center"><span class="stat-cell stat-cell--drawn">${team.drawn}</span></td>
         <td class="col-center"><span class="stat-cell stat-cell--lost">${team.lost}</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--gf">${team.gf}</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--gc">${team.gc}</span></td>
+        <td class="col-center">${renderDG(team.dg)}</td>
         <td class="col-center"><span class="stat-cell">${team.average.toFixed(2)}</span></td>
         <td class="col-center"><span class="stat-cell">${team.pointsEarned}</span></td>
         <td class="col-center"><span class="stat-cell stat-cell--muted">${team.maxPoints}</span></td>
@@ -438,6 +487,9 @@ function updateSortIndicators() {
     "won",
     "drawn",
     "lost",
+    "gf",
+    "gc",
+    "dg",
     "average",
     "pointsEarned",
     "maxPoints",
