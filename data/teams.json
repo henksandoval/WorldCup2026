@@ -42,9 +42,9 @@
     { "name": "Egipto", "code": "eg", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 1, "gc": 1 }
   ],
   "Grupo H": [
+    { "name": "España", "code": "es", "confederation": "UEFA", "played": 2, "won": 1, "drawn": 1, "lost": 0, "gf": 4, "gc": 0 },
     { "name": "Uruguay", "code": "uy", "confederation": "CONMEBOL", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 1, "gc": 1 },
-    { "name": "Arabia Saudita", "code": "sa", "confederation": "AFC", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 1, "gc": 1 },
-    { "name": "España", "code": "es", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 0, "gc": 0 },
+    { "name": "Arabia Saudita", "code": "sa", "confederation": "AFC", "played": 2, "won": 0, "drawn": 1, "lost": 1, "gf": 1, "gc": 5 },
     { "name": "Cabo Verde", "code": "cv", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 0, "gc": 0 }
   ],
   "Grupo I": [
