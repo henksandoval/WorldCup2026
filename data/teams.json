@@ -36,16 +36,16 @@
     { "name": "Túnez", "code": "tn", "confederation": "CAF", "played": 2, "won": 0, "drawn": 0, "lost": 2, "gf": 1, "gc": 9 }
   ],
   "Grupo G": [
-    { "name": "Nueva Zelanda", "code": "nz", "confederation": "OFC", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 2, "gc": 2 },
-    { "name": "Irán", "code": "ir", "confederation": "AFC", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 2, "gc": 2 },
-    { "name": "Bélgica", "code": "be", "confederation": "UEFA", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 1, "gc": 1 },
-    { "name": "Egipto", "code": "eg", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 1, "gc": 1 }
+    { "name": "Egipto", "code": "eg", "confederation": "CAF", "played": 2, "won": 1, "drawn": 1, "lost": 0, "gf": 4, "gc": 2 },
+    { "name": "Irán", "code": "ir", "confederation": "AFC", "played": 2, "won": 0, "drawn": 2, "lost": 0, "gf": 2, "gc": 2 },
+    { "name": "Bélgica", "code": "be", "confederation": "UEFA", "played": 2, "won": 0, "drawn": 2, "lost": 0, "gf": 1, "gc": 1 },
+    { "name": "Nueva Zelanda", "code": "nz", "confederation": "OFC", "played": 2, "won": 0, "drawn": 1, "lost": 1, "gf": 3, "gc": 5 }    
   ],
   "Grupo H": [
     { "name": "España", "code": "es", "confederation": "UEFA", "played": 2, "won": 1, "drawn": 1, "lost": 0, "gf": 4, "gc": 0 },
-    { "name": "Uruguay", "code": "uy", "confederation": "CONMEBOL", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 1, "gc": 1 },
-    { "name": "Arabia Saudita", "code": "sa", "confederation": "AFC", "played": 2, "won": 0, "drawn": 1, "lost": 1, "gf": 1, "gc": 5 },
-    { "name": "Cabo Verde", "code": "cv", "confederation": "CAF", "played": 1, "won": 0, "drawn": 1, "lost": 0, "gf": 0, "gc": 0 }
+    { "name": "Uruguay", "code": "uy", "confederation": "CONMEBOL", "played": 2, "won": 0, "drawn": 2, "lost": 0, "gf": 3, "gc": 3 },
+    { "name": "Cabo Verde", "code": "cv", "confederation": "CAF", "played": 2, "won": 0, "drawn": 2, "lost": 0, "gf": 2, "gc": 2 },
+    { "name": "Arabia Saudita", "code": "sa", "confederation": "AFC", "played": 2, "won": 0, "drawn": 1, "lost": 1, "gf": 1, "gc": 5 }
   ],
   "Grupo I": [
     { "name": "Noruega", "code": "no", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0, "gf": 4, "gc": 1 },
@@ -54,8 +54,8 @@
     { "name": "Irak", "code": "iq", "confederation": "AFC", "played": 1, "won": 0, "drawn": 0, "lost": 1, "gf": 1, "gc": 4 }
   ],
   "Grupo J": [
-    { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL", "played": 1, "won": 1, "drawn": 0, "lost": 0, "gf": 3, "gc": 0 },
-    { "name": "Austria", "code": "at", "confederation": "UEFA", "played": 1, "won": 1, "drawn": 0, "lost": 0, "gf": 3, "gc": 1 },
+    { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL", "played": 2, "won": 2, "drawn": 0, "lost": 0, "gf": 5, "gc": 0 },
+    { "name": "Austria", "code": "at", "confederation": "UEFA", "played": 2, "won": 1, "drawn": 0, "lost": 1, "gf": 3, "gc": 3 },
     { "name": "Jordania", "code": "jo", "confederation": "AFC", "played": 1, "won": 0, "drawn": 0, "lost": 1, "gf": 1, "gc": 3 },
     { "name": "Argelia", "code": "dz", "confederation": "CAF", "played": 1, "won": 0, "drawn": 0, "lost": 1, "gf": 0, "gc": 3 }
   ],
