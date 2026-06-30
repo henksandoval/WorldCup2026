@@ -226,6 +226,7 @@ function build() {
   // Read source files
   const confederationData = readJSON(CONFEDERATIONS_FILE);
   const worldCupGroups = readJSON(TEAMS_FILE);
+  const knockoutData = readJSON(path.join(DATA_DIR, "knockout.json"));
   const template = fs.readFileSync(TEMPLATE_FILE, "utf-8");
 
   // Aggregate data
@@ -248,6 +249,7 @@ function build() {
       acc[d.confederation] = d.teamList;
       return acc;
     }, {}),
+    knockout: knockoutData,
   });
 
   const hydrationScript = `<script>window.__PRELOADED_DATA__ = ${hydrationData};</script>`;

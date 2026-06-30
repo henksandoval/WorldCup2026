@@ -114,74 +114,163 @@
             <p class="page-header__subtitle">Rendimiento actualizado por confederación</p>
         </header>
 
-        <section aria-label="Tabla de rendimiento por confederación">
-            <div class="table-container">
-                <table class="data-table" role="grid" aria-label="Estadísticas de confederaciones en el Mundial 2026">
-                    <thead>
-                        <tr>
-                            <th class="col-rank col-center" scope="col" aria-label="Posición">#</th>
-                            <th data-sortable="true" data-column="confederation" scope="col" tabindex="0" aria-sort="descending">
-                                Confederación / Equipo
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="teams" class="col-center" scope="col" tabindex="0">
-                                Equipos
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="played" class="col-center" scope="col" tabindex="0">
-                                Partidos jugados
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="won" class="col-center" scope="col" tabindex="0">
-                                G
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="drawn" class="col-center" scope="col" tabindex="0">
-                                E
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="lost" class="col-center" scope="col" tabindex="0">
-                                P
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="gf" class="col-center" scope="col" tabindex="0">
-                                GF
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="gc" class="col-center" scope="col" tabindex="0">
-                                GC
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="dg" class="col-center" scope="col" tabindex="0">
-                                DG
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="average" class="col-center" scope="col" tabindex="0">
-                                Prom.
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="pointsEarned" class="col-center" scope="col" tabindex="0">
-                                Pts Obtenidos
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                            <th data-sortable="true" data-column="maxPoints" class="col-center" scope="col" tabindex="0">
-                                Máx. Posibles
-                                <span class="sort-indicator" aria-hidden="true"></span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="confederation-table-body">
-                        <tr>
-                            <td colspan="13" class="loading-state" role="status">
-                                <p>Cargando datos del torneo...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <section aria-label="Secciones de estadísticas del torneo">
+            <div class="tabs-nav" role="tablist" aria-label="Opciones de visualización">
+                <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="view-groups" id="tab-groups">Fase de Grupos</button>
+                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="view-knockout-list" id="tab-knockout-list">Fase Eliminatoria</button>
+                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="view-bracket" id="tab-bracket">Camino a la Final 🌳</button>
+                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="view-global" id="tab-global-perf">Rendimiento Global 🌍</button>
             </div>
-            <p class="table-hint">
-                * Haz clic en los encabezados para ordenar. Usa <kbd>Enter</kbd> o <kbd>Espacio</kbd> en las filas para expandir.
-            </p>
+
+            <!-- VISTA 1: Fase de Grupos -->
+            <div id="view-groups" class="tab-view" role="tabpanel" aria-labelledby="tab-groups">
+                <div class="table-container">
+                    <table class="data-table" role="grid" aria-label="Estadísticas de confederaciones en la Fase de Grupos">
+                        <thead>
+                            <tr>
+                                <th class="col-rank col-center" scope="col" aria-label="Posición">#</th>
+                                <th data-sortable="true" data-column="confederation" scope="col" tabindex="0" aria-sort="descending">
+                                    Confederación / Equipo
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="teams" class="col-center" scope="col" tabindex="0">
+                                    Equipos
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="played" class="col-center" scope="col" tabindex="0">
+                                    Partidos jugados
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="won" class="col-center" scope="col" tabindex="0">
+                                    G
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="drawn" class="col-center" scope="col" tabindex="0">
+                                    E
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="lost" class="col-center" scope="col" tabindex="0">
+                                    P
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="gf" class="col-center" scope="col" tabindex="0">
+                                    GF
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="gc" class="col-center" scope="col" tabindex="0">
+                                    GC
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="dg" class="col-center" scope="col" tabindex="0">
+                                    DG
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="average" class="col-center" scope="col" tabindex="0">
+                                    Prom.
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="pointsEarned" class="col-center" scope="col" tabindex="0">
+                                    Pts Obtenidos
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th data-sortable="true" data-column="maxPoints" class="col-center" scope="col" tabindex="0">
+                                    Máx. Posibles
+                                    <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="confederation-table-body">
+                            <tr>
+                                <td colspan="13" class="loading-state" role="status">
+                                    <p>Cargando datos del torneo...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-hint">
+                    * Haz clic en los encabezados para ordenar. Usa <kbd>Enter</kbd> o <kbd>Espacio</kbd> en las filas para expandir los equipos de cada confederación.
+                </p>
+            </div>
+
+            <!-- VISTA 2: Fase Eliminatoria (Agrupada por Confederación) -->
+            <div id="view-knockout-list" class="tab-view hidden" role="tabpanel" aria-labelledby="tab-knockout-list">
+                <div class="knockout-confed-groups" id="knockout-confed-groups-content">
+                    <p class="loading-state">Cargando partidos eliminatorios por confederación...</p>
+                </div>
+            </div>
+
+            <!-- VISTA 3: Camino a la Final (Bracket del Torneo) -->
+            <div id="view-bracket" class="tab-view hidden" role="tabpanel" aria-labelledby="tab-bracket">
+                <div class="bracket-wrapper">
+                    <div class="bracket-container" id="bracket-content">
+                        <p class="loading-state">Cargando llaves de la fase eliminatoria...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 4: Rendimiento Global (Metodología + Tabla CRG/Efectividad) -->
+            <div id="view-global" class="tab-view hidden" role="tabpanel" aria-labelledby="tab-global-perf">
+                <!-- Panel de Metodología y Transparencia -->
+                <div class="methodology-card">
+                    <div class="methodology-card__header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="methodology-card__icon" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <h2>Metodología de Evaluación y Transparencia</h2>
+                    </div>
+                    <div class="methodology-card__content">
+                        <p>Para definir objetivamente qué confederación tiene el mejor rendimiento, evitando sesgos por la cantidad desigual de cupos asignados (ej. UEFA 16 vs CONMEBOL 6), utilizamos dos métricas principales:</p>
+                        
+                        <div class="methodology-grid">
+                            <div class="methodology-item">
+                                <h3>1. Coeficiente de Rendimiento Global (CRG)</h3>
+                                <div class="formula-box">
+                                    <code>CRG = (Pts_Grupos + Pts_Avance) / Equipos_Iniciales</code>
+                                </div>
+                                <p>Mide la trascendencia de los equipos de la confederación. Los <strong>Pts_Avance</strong> otorgan peso por ronda alcanzada (Equipos en 16vos &times; 1, Equipos en 8vos &times; 2, etc.), dividiéndose todo entre la cuota inicial de equipos. Premia avanzar lejos y penaliza la eliminación temprana.</p>
+                            </div>
+                            
+                            <div class="methodology-item">
+                                <h3>2. Efectividad vs Resto del Mundo</h3>
+                                <div class="formula-box">
+                                    <code>Efectividad (%) = Pts_InterConf / (PJ_InterConf &times; 3) &times; 100</code>
+                                </div>
+                                <p>Mide la eficiencia en duelos directos. <strong>Excluye los partidos entre rivales de la misma confederación en fase eliminatoria</strong> para no castigarlas cuando se eliminan entre sí. Solo computa los puntos disputados y ganados contra rivales externos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Posiciones Global -->
+                <div class="table-container">
+                    <table class="data-table" role="grid" aria-label="Tabla de Posiciones de Rendimiento Global">
+                        <thead>
+                            <tr>
+                                <th class="col-rank col-center" scope="col" aria-label="Posición">#</th>
+                                <th scope="col">Confederación</th>
+                                <th class="col-center" scope="col">Equipos (Vivos/Total)</th>
+                                <th class="col-center" scope="col">Supervivencia (%)</th>
+                                <th class="col-center" scope="col">PJ (Inter-Conf)</th>
+                                <th class="col-center" scope="col">Efectividad (%)</th>
+                                <th class="col-center" scope="col" aria-sort="descending">🏆 CRG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="global-performance-table-body">
+                            <tr>
+                                <td colspan="7" class="loading-state" role="status">
+                                    <p>Cargando ranking global...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-hint">
+                    * Haz clic en el botón de expansión (+) o presiona <kbd>Enter</kbd> o <kbd>Espacio</kbd> en las filas para ver hasta dónde han llegado los equipos de cada confederación.
+                </p>
+            </div>
         </section>
     </main>
 
