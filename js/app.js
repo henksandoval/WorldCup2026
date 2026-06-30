@@ -17,9 +17,11 @@ const FLAG_BASE_URL =
 let confederationData = {};
 let aggregatedData = [];
 let teamData = {};
+let knockoutData = {};
 let currentSortColumn = "average";
 let currentSortDirection = "desc";
 const expandedConfederations = new Set();
+const expandedGlobalConfederations = new Set();
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,19 +44,22 @@ async function initializeData() {
     confederationData = preloaded.confederations || {};
     aggregatedData = preloaded.aggregated || [];
     teamData = preloaded.teams || {};
+    knockoutData = preloaded.knockout || {};
     sortAggregatedData();
     return;
   }
 
   // Fallback: fetch JSONs directly (for local dev without build step)
   try {
-    const [confRes, teamsRes] = await Promise.all([
+    const [confRes, teamsRes, knockoutRes] = await Promise.all([
       fetch("data/confederations.json"),
       fetch("data/teams.json"),
+      fetch("data/knockout.json"),
     ]);
-    if (!confRes.ok || !teamsRes.ok) throw new Error("Failed to fetch data");
+    if (!confRes.ok || !teamsRes.ok || !knockoutRes.ok) throw new Error("Failed to fetch data");
     confederationData = await confRes.json();
     const groups = await teamsRes.json();
+    knockoutData = await knockoutRes.json();
     aggregateFromJSON(confederationData, groups);
   } catch (err) {
     console.error("Error cargando datos:", err);
@@ -227,6 +232,7 @@ function renderTable() {
   sortAggregatedData();
 
   const tbody = document.getElementById("confederation-table-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   aggregatedData.forEach((data, index) => {
@@ -585,12 +591,1038 @@ function updateToggleAria(btn, theme) {
 }
 
 // ---------------------------------------------------------------------------
+// TABS & NEW METRICS FUNCTIONS
+// ---------------------------------------------------------------------------
+
+function initTabs() {
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabViews = document.querySelectorAll(".tab-view");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      // Deactivate all buttons
+      tabButtons.forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
+      // Hide all views
+      tabViews.forEach(v => v.classList.add("hidden"));
+
+      // Activate selected
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
+      const targetId = btn.getAttribute("aria-controls");
+      const targetView = document.getElementById(targetId);
+      if (targetView) {
+        targetView.classList.remove("hidden");
+      }
+
+      // Render tab-specific content
+      if (targetId === "view-knockout-list") {
+        renderKnockoutByConfederation();
+      } else if (targetId === "view-bracket") {
+        renderBracket();
+      } else if (targetId === "view-global") {
+        renderGlobalPerformance();
+      }
+    });
+  });
+}
+
+function getAliveTeams() {
+  const allTeams = {};
+
+  // 1. Load all teams from teamData
+  for (const confedKey in teamData) {
+    const teams = teamData[confedKey];
+    teams.forEach(team => {
+      allTeams[team.name] = {
+        name: team.name,
+        confederation: confedKey,
+        status: "alive"
+      };
+    });
+  }
+
+  // 2. Find which teams made it to R32
+  const r32Teams = new Set();
+  const r32Round = knockoutData.rounds ? knockoutData.rounds.find(r => r.id === "R32") : null;
+  if (r32Round) {
+    for (const fixture of r32Round.fixtures) {
+      if (fixture.home && fixture.home.name) r32Teams.add(fixture.home.name);
+      if (fixture.away && fixture.away.name) r32Teams.add(fixture.away.name);
+    }
+  }
+
+  // 3. Mark teams not in R32 as eliminated
+  for (const teamName in allTeams) {
+    if (!r32Teams.has(teamName)) {
+      allTeams[teamName].status = "eliminated";
+    }
+  }
+
+  // 4. Mark losers of finished fixtures in any round as eliminated
+  if (knockoutData.rounds) {
+    for (const round of knockoutData.rounds) {
+      for (const fixture of round.fixtures) {
+        if (fixture.status === "finished" && fixture.winner) {
+          const homeName = fixture.home.name;
+          const awayName = fixture.away.name;
+          const winnerName = fixture.winner.name;
+          const loserName = homeName === winnerName ? awayName : homeName;
+
+          if (allTeams[loserName]) {
+            allTeams[loserName].status = "eliminated";
+          }
+        }
+      }
+    }
+  }
+
+  return allTeams;
+}
+
+function calculateGlobalMetrics() {
+  const confedStats = {};
+
+  for (const confedKey in confederationData) {
+    confedStats[confedKey] = {
+      key: confedKey,
+      name: confederationData[confedKey].name,
+      logo: confederationData[confedKey].logo,
+      initialTeams: 0,
+      aliveTeams: 0,
+      groupPoints: 0,
+      eliminationAdvancePoints: 0,
+      interConfPlayed: 0,
+      interConfPoints: 0,
+      crg: 0,
+      effectiveness: 0,
+      survivalRate: 0
+    };
+  }
+
+  // 1. Initial teams and Group Stage points
+  for (const confedKey in teamData) {
+    const stats = confedStats[confedKey];
+    if (!stats) continue;
+    const teams = teamData[confedKey];
+
+    stats.initialTeams = teams.length;
+
+    teams.forEach(team => {
+      stats.groupPoints += (team.won * 3 + team.drawn);
+    });
+  }
+
+  // 2. Active (alive) teams
+  const aliveTeamsMap = getAliveTeams();
+  for (const teamName in aliveTeamsMap) {
+    const teamObj = aliveTeamsMap[teamName];
+    if (teamObj.status === "alive") {
+      const stats = confedStats[teamObj.confederation];
+      if (stats) stats.aliveTeams += 1;
+    }
+  }
+
+  // 3. Elimination advance points (CRG Progression Points)
+  if (knockoutData.rounds) {
+    for (const round of knockoutData.rounds) {
+      const roundOrder = round.order || 1;
+      const confedTeamCountInRound = {};
+
+      for (const fixture of round.fixtures) {
+        if (fixture.home && fixture.home.confederation) {
+          const conf = fixture.home.confederation;
+          confedTeamCountInRound[conf] = (confedTeamCountInRound[conf] || 0) + 1;
+        }
+        if (fixture.away && fixture.away.confederation) {
+          const conf = fixture.away.confederation;
+          confedTeamCountInRound[conf] = (confedTeamCountInRound[conf] || 0) + 1;
+        }
+      }
+
+      for (const conf in confedTeamCountInRound) {
+        const stats = confedStats[conf];
+        if (stats) {
+          stats.eliminationAdvancePoints += confedTeamCountInRound[conf] * roundOrder;
+        }
+      }
+    }
+  }
+
+  // 4. Knockout stage Inter-confederation matches played & points (Effectiveness)
+  // Excludes intra-confederation matches (home.confederation === away.confederation)
+  if (knockoutData.rounds) {
+    for (const round of knockoutData.rounds) {
+      for (const fixture of round.fixtures) {
+        if (fixture.status === "finished") {
+          const homeConf = fixture.home.confederation;
+          const awayConf = fixture.away.confederation;
+
+          if (homeConf !== awayConf) {
+            // Home team
+            const homeStats = confedStats[homeConf];
+            if (homeStats) {
+              homeStats.interConfPlayed += 1;
+              if (fixture.winner && fixture.winner.name === fixture.home.name) {
+                homeStats.interConfPoints += 3;
+              } else if (!fixture.winner || fixture.scoreHome === fixture.scoreAway) {
+                homeStats.interConfPoints += 1;
+              }
+            }
+
+            // Away team
+            const awayStats = confedStats[awayConf];
+            if (awayStats) {
+              awayStats.interConfPlayed += 1;
+              if (fixture.winner && fixture.winner.name === fixture.away.name) {
+                awayStats.interConfPoints += 3;
+              } else if (!fixture.winner || fixture.scoreHome === fixture.scoreAway) {
+                awayStats.interConfPoints += 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 5. Finalize calculations
+  const result = [];
+  for (const confedKey in confedStats) {
+    const stats = confedStats[confedKey];
+    if (stats.initialTeams > 0) {
+      stats.crg = (stats.groupPoints + stats.eliminationAdvancePoints) / stats.initialTeams;
+      stats.survivalRate = (stats.aliveTeams / stats.initialTeams) * 100;
+      stats.effectiveness = stats.interConfPlayed > 0 ? (stats.interConfPoints / (stats.interConfPlayed * 3)) * 100 : 0;
+
+      result.push(stats);
+    }
+  }
+
+  result.sort((a, b) => b.crg - a.crg || b.survivalRate - a.survivalRate || b.effectiveness - a.effectiveness);
+  return result;
+}
+
+function renderKnockoutByConfederation() {
+  const container = document.getElementById("knockout-confed-groups-content");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const confeds = Object.keys(confederationData);
+  const matchesByConfed = {};
+  confeds.forEach(c => matchesByConfed[c] = []);
+
+  if (knockoutData.rounds) {
+    for (const round of knockoutData.rounds) {
+      for (const fixture of round.fixtures) {
+        const homeConf = fixture.home.confederation;
+        const awayConf = fixture.away.confederation;
+
+        const matchData = {
+          roundName: round.name,
+          fixture
+        };
+
+        if (matchesByConfed[homeConf]) {
+          matchesByConfed[homeConf].push(matchData);
+        }
+        if (homeConf !== awayConf && matchesByConfed[awayConf]) {
+          matchesByConfed[awayConf].push(matchData);
+        }
+      }
+    }
+  }
+
+  for (const conf of confeds) {
+    const matches = matchesByConfed[conf];
+    if (matches.length === 0) continue;
+
+    const confInfo = confederationData[conf] || { name: conf, logo: "" };
+
+    const card = document.createElement("div");
+    card.className = "confed-group-card";
+
+    let matchesHTML = "";
+    matches.forEach(({ roundName, fixture }) => {
+      const isFinished = fixture.status === "finished";
+      const statusClass = isFinished ? "match-status-badge--finished" : "match-status-badge--scheduled";
+      const statusText = isFinished ? "Finalizado" : "Programado";
+
+      const homeName = fixture.home.name;
+      const awayName = fixture.away.name;
+
+      const scoreText = isFinished ? `${fixture.scoreHome} - ${fixture.scoreAway}` : "vs";
+      const pensHTML = (isFinished && fixture.pensHome !== null)
+        ? `<div class="pens-score">Pen: ${fixture.pensHome} - ${fixture.pensAway}</div>`
+        : "";
+
+      const homeWinnerClass = (isFinished && fixture.winner && fixture.winner.name === homeName) ? "winner" : "";
+      const awayWinnerClass = (isFinished && fixture.winner && fixture.winner.name === awayName) ? "winner" : "";
+
+      matchesHTML += `
+        <div class="knockout-match-item">
+          <div class="knockout-match-item__header">
+            <span>${escapeHTML(roundName)}</span>
+            <span class="match-status-badge ${statusClass}">${statusText}</span>
+          </div>
+          <div class="knockout-match-item__body">
+            <div class="match-team match-team--home ${homeWinnerClass}">
+              <span>${escapeHTML(homeName)}</span>
+              <img src="${FLAG_BASE_URL}${escapeHTML(fixture.home.code)}.svg" class="country-flag" width="20" height="14" alt="" onerror="this.style.display='none'">
+            </div>
+            <div class="match-score-box">
+              <div>${scoreText}</div>
+              ${pensHTML}
+            </div>
+            <div class="match-team match-team--away ${awayWinnerClass}">
+              <img src="${FLAG_BASE_URL}${escapeHTML(fixture.away.code)}.svg" class="country-flag" width="20" height="14" alt="" onerror="this.style.display='none'">
+              <span>${escapeHTML(awayName)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    card.innerHTML = `
+      <div class="confed-group-card__header" style="cursor: pointer;">
+        <span class="confed-logo-wrap">
+          <img src="${escapeHTML(confInfo.logo)}" class="confed-logo" width="24" height="24" alt="">
+        </span>
+        <h3 class="confed-group-card__title">${escapeHTML(conf)}</h3>
+        <button class="confed-card-toggle" aria-label="Colapsar o expandir">
+          <span class="confed-card-toggle-sign">−</span>
+        </button>
+      </div>
+      <div class="knockout-matches-list">
+        ${matchesHTML}
+      </div>
+    `;
+
+    // Lógica de colapsado independiente al dar clic en la cabecera
+    const header = card.querySelector(".confed-group-card__header");
+    header.addEventListener("click", () => {
+      const isCollapsed = card.classList.toggle("collapsed");
+      const toggleSign = card.querySelector(".confed-card-toggle-sign");
+      if (toggleSign) {
+        toggleSign.textContent = isCollapsed ? "+" : "−";
+      }
+    });
+
+    container.appendChild(card);
+  }
+}
+
+// Helpers para propagación y estructuración del Bracket
+function pad(num) {
+  return String(num).padStart(2, '0');
+}
+
+function getWinnerOfMatch(fixtures, matchId) {
+  const match = fixtures.find(f => f.id === matchId);
+  if (!match) return { name: `Ganador ${matchId}`, placeholder: true };
+  if (match.status === "finished" && match.winner) {
+    return { name: match.winner.name, code: match.winner.code, confederation: match.winner.confederation };
+  }
+  return { name: `Ganador ${matchId}`, placeholder: true };
+}
+
+function getLoserOfMatch(fixtures, matchId) {
+  const match = fixtures.find(f => f.id === matchId);
+  if (!match) return { name: `Perdedor ${matchId}`, placeholder: true };
+  if (match.status === "finished" && match.winner) {
+    const homeName = match.home.name;
+    const awayName = match.away.name;
+    const winnerName = match.winner.name;
+    const loser = homeName === winnerName ? match.away : match.home;
+    return { name: loser.name, code: loser.code, confederation: loser.confederation };
+  }
+  return { name: `Perdedor ${matchId}`, placeholder: true };
+}
+
+function getRoundFixtures(roundId, prevFixtures) {
+  const roundJSON = knockoutData.rounds ? knockoutData.rounds.find(r => r.id === roundId) : null;
+  const fixtures = [];
+
+  if (roundId === "R32") {
+    return roundJSON ? roundJSON.fixtures : [];
+  }
+
+  if (roundId === "R16") {
+    for (let j = 1; j <= 8; j++) {
+      const id = `R16-${pad(j)}`;
+      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+      const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, `R32-${pad(2 * j - 1)}`);
+      const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, `R32-${pad(2 * j)}`);
+
+      fixtures.push({
+        id, home, away,
+        scoreHome: jsonFixture ? jsonFixture.scoreHome : null,
+        scoreAway: jsonFixture ? jsonFixture.scoreAway : null,
+        pensHome: jsonFixture ? jsonFixture.pensHome : null,
+        pensAway: jsonFixture ? jsonFixture.pensAway : null,
+        winner: jsonFixture ? jsonFixture.winner : null,
+        status: jsonFixture ? jsonFixture.status : "scheduled"
+      });
+    }
+  } else if (roundId === "QF") {
+    for (let j = 1; j <= 4; j++) {
+      const id = `QF-${pad(j)}`;
+      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+      const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, `R16-${pad(2 * j - 1)}`);
+      const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, `R16-${pad(2 * j)}`);
+
+      fixtures.push({
+        id, home, away,
+        scoreHome: jsonFixture ? jsonFixture.scoreHome : null,
+        scoreAway: jsonFixture ? jsonFixture.scoreAway : null,
+        pensHome: jsonFixture ? jsonFixture.pensHome : null,
+        pensAway: jsonFixture ? jsonFixture.pensAway : null,
+        winner: jsonFixture ? jsonFixture.winner : null,
+        status: jsonFixture ? jsonFixture.status : "scheduled"
+      });
+    }
+  } else if (roundId === "SF") {
+    for (let j = 1; j <= 2; j++) {
+      const id = `SF-${pad(j)}`;
+      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+      const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, `QF-${pad(2 * j - 1)}`);
+      const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, `QF-${pad(2 * j)}`);
+
+      fixtures.push({
+        id, home, away,
+        scoreHome: jsonFixture ? jsonFixture.scoreHome : null,
+        scoreAway: jsonFixture ? jsonFixture.scoreAway : null,
+        pensHome: jsonFixture ? jsonFixture.pensHome : null,
+        pensAway: jsonFixture ? jsonFixture.pensAway : null,
+        winner: jsonFixture ? jsonFixture.winner : null,
+        status: jsonFixture ? jsonFixture.status : "scheduled"
+      });
+    }
+  } else if (roundId === "Final") {
+    const id = "Final";
+    const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+    const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, "SF-01");
+    const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, "SF-02");
+
+    fixtures.push({
+      id, home, away,
+      scoreHome: jsonFixture ? jsonFixture.scoreHome : null,
+      scoreAway: jsonFixture ? jsonFixture.scoreAway : null,
+      pensHome: jsonFixture ? jsonFixture.pensHome : null,
+      pensAway: jsonFixture ? jsonFixture.pensAway : null,
+      winner: jsonFixture ? jsonFixture.winner : null,
+      status: jsonFixture ? jsonFixture.status : "scheduled"
+    });
+  } else if (roundId === "Bronce") {
+    const id = "Bronce";
+    const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+    const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getLoserOfMatch(prevFixtures, "SF-01");
+    const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getLoserOfMatch(prevFixtures, "SF-02");
+
+    fixtures.push({
+      id, home, away,
+      scoreHome: jsonFixture ? jsonFixture.scoreHome : null,
+      scoreAway: jsonFixture ? jsonFixture.scoreAway : null,
+      pensHome: jsonFixture ? jsonFixture.pensHome : null,
+      pensAway: jsonFixture ? jsonFixture.pensAway : null,
+      winner: jsonFixture ? jsonFixture.winner : null,
+      status: jsonFixture ? jsonFixture.status : "scheduled"
+    });
+  }
+
+  return fixtures;
+}
+
+function renderBracketCard(fixture) {
+  const isFinished = fixture.status === "finished";
+  const homeName = fixture.home ? fixture.home.name : "Por definir";
+  const awayName = fixture.away ? fixture.away.name : "Por definir";
+  const homeCode = (fixture.home && fixture.home.code && !fixture.home.placeholder) ? fixture.home.code : "";
+  const awayCode = (fixture.away && fixture.away.code && !fixture.away.placeholder) ? fixture.away.code : "";
+  const homeConf = (fixture.home && fixture.home.confederation && !fixture.home.placeholder) ? fixture.home.confederation : "";
+  const awayConf = (fixture.away && fixture.away.confederation && !fixture.away.placeholder) ? fixture.away.confederation : "";
+
+  const homeWinner = isFinished && fixture.winner && fixture.winner.name === homeName;
+  const awayWinner = isFinished && fixture.winner && fixture.winner.name === awayName;
+  const homeLoser = isFinished && fixture.winner && fixture.winner.name !== homeName;
+  const awayLoser = isFinished && fixture.winner && fixture.winner.name !== awayName;
+
+  const homeScore = isFinished ? fixture.scoreHome : "";
+  const awayScore = isFinished ? fixture.scoreAway : "";
+  const pensHome = (isFinished && fixture.pensHome !== null) ? `(${fixture.pensHome})` : "";
+  const pensAway = (isFinished && fixture.pensAway !== null) ? `(${fixture.pensAway})` : "";
+
+  return `
+    <div class="bracket-match-card">
+      <div class="bracket-match-card__header">
+        <span>ID: ${fixture.id}</span>
+        <span>${isFinished ? "Finalizado" : "Programado"}</span>
+      </div>
+      <div class="bracket-match-team ${homeWinner ? 'winner' : ''} ${homeLoser ? 'loser' : ''}">
+        <div class="bracket-team-info">
+          ${homeCode
+      ? `<img src="${FLAG_BASE_URL}${escapeHTML(homeCode)}.svg" class="country-flag" width="16" height="12" alt="">`
+      : `<span class="country-flag-placeholder" style="display: inline-block; width: 16px; height: 12px; flex-shrink: 0;"></span>`}
+          <span title="${escapeHTML(homeName)}">${escapeHTML(homeName)}</span>
+          ${homeConf ? `<span class="bracket-team-confed">${escapeHTML(homeConf)}</span>` : ""}
+        </div>
+        <span class="bracket-match-score">${homeScore} ${pensHome}</span>
+      </div>
+      <div class="bracket-match-team ${awayWinner ? 'winner' : ''} ${awayLoser ? 'loser' : ''}">
+        <div class="bracket-team-info">
+          ${awayCode
+      ? `<img src="${FLAG_BASE_URL}${escapeHTML(awayCode)}.svg" class="country-flag" width="16" height="12" alt="">`
+      : `<span class="country-flag-placeholder" style="display: inline-block; width: 16px; height: 12px; flex-shrink: 0;"></span>`}
+          <span title="${escapeHTML(awayName)}">${escapeHTML(awayName)}</span>
+          ${awayConf ? `<span class="bracket-team-confed">${escapeHTML(awayConf)}</span>` : ""}
+        </div>
+        <span class="bracket-match-score">${awayScore} ${pensAway}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderBracket() {
+  const container = document.getElementById("bracket-content");
+  if (!container) return;
+  container.innerHTML = "";
+
+  // 1. Calcular llaves con propagación de resultados
+  const r32 = getRoundFixtures("R32");
+  const all = [...r32];
+  const r16 = getRoundFixtures("R16", all);
+  all.push(...r16);
+  const qf = getRoundFixtures("QF", all);
+  all.push(...qf);
+  const sf = getRoundFixtures("SF", all);
+  all.push(...sf);
+  const final = getRoundFixtures("Final", all);
+  const bronce = getRoundFixtures("Bronce", all);
+
+  // 2. Generar el esqueleto simétrico (Split Layout)
+  // Lado Izquierdo
+  const leftHtml = `
+    <div class="bracket-round">
+      <div class="bracket-round__title">1/16 de Final</div>
+      <div class="bracket-matches">
+        ${r32.slice(0, 8).map(f => renderBracketCard(f)).join("")}
+      </div>
+    </div>
+    <div class="bracket-round">
+      <div class="bracket-round__title">Octavos</div>
+      <div class="bracket-matches">
+        ${r16.slice(0, 4).map(f => renderBracketCard(f)).join("")}
+      </div>
+    </div>
+    <div class="bracket-round">
+      <div class="bracket-round__title">Cuartos</div>
+      <div class="bracket-matches">
+        ${qf.slice(0, 2).map(f => renderBracketCard(f)).join("")}
+      </div>
+    </div>
+    <div class="bracket-round">
+      <div class="bracket-round__title">Semifinal</div>
+      <div class="bracket-matches">
+        ${renderBracketCard(sf[0])}
+      </div>
+    </div>
+  `;
+
+  // Centro (Final y Bronce)
+  const centerHtml = `
+    <div class="bracket-center-round">
+      <div class="bracket-round__title">Final</div>
+      ${renderBracketCard(final[0])}
+    </div>
+    <div class="bracket-trophy-wrap">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/93/FIFA_World_Cup.png" class="bracket-trophy-img" alt="Copa del Mundo" width="80" height="180">
+      <div class="bracket-final-date">Domingo 19 Julio 2026</div>
+    </div>
+    <div class="bracket-center-round">
+      <div class="bracket-round__title">Tercer Puesto</div>
+      ${renderBracketCard(bronce[0])}
+    </div>
+  `;
+
+  // Lado Derecho: Se renderiza en orden 1/16 -> Octavos -> Cuartos -> Semifinal.
+  // Como el CSS del contenedor tiene 'flex-direction: row-reverse', esto resultará
+  // visualmente en un flujo de Semifinal (más al centro) -> Cuartos -> Octavos -> 1/16 de Final (más al borde derecho).
+  const rightHtml = `
+    <div class="bracket-round">
+      <div class="bracket-round__title">1/16 de Final</div>
+      <div class="bracket-matches">
+        ${r32.slice(8, 16).map(f => renderBracketCard(f)).join("")}
+      </div>
+    </div>
+    <div class="bracket-round">
+      <div class="bracket-round__title">Octavos</div>
+      <div class="bracket-matches">
+        ${r16.slice(4, 8).map(f => renderBracketCard(f)).join("")}
+      </div>
+    </div>
+    <div class="bracket-round">
+      <div class="bracket-round__title">Cuartos</div>
+      <div class="bracket-matches">
+        ${qf.slice(2, 4).map(f => renderBracketCard(f)).join("")}
+      </div>
+    </div>
+    <div class="bracket-round">
+      <div class="bracket-round__title">Semifinal</div>
+      <div class="bracket-matches">
+        ${renderBracketCard(sf[1])}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = `
+    <div class="bracket-layout">
+      <div class="bracket-side bracket-side--left">
+        ${leftHtml}
+      </div>
+      <div class="bracket-center">
+        ${centerHtml}
+      </div>
+      <div class="bracket-side bracket-side--right">
+        ${rightHtml}
+      </div>
+    </div>
+  `;
+}
+
+function getTeamProgressMap() {
+  const progressMap = {};
+  const aliveTeams = getAliveTeams();
+
+  // Initialize with "Fase de Grupos"
+  for (const confedKey in teamData) {
+    teamData[confedKey].forEach(t => {
+      progressMap[t.name] = {
+        name: t.name,
+        code: t.code,
+        confederation: confedKey,
+        round: "Fase de Grupos",
+        isAlive: aliveTeams[t.name]?.status === "alive"
+      };
+    });
+  }
+
+  // Resolve matches using the propagation logic of the bracket
+  const r32 = getRoundFixtures("R32");
+  const r16 = getRoundFixtures("R16", r32);
+  const qf = getRoundFixtures("QF", r16);
+  const sf = getRoundFixtures("SF", qf);
+  const final = getRoundFixtures("Final", sf);
+  const bronce = getRoundFixtures("Bronce", sf);
+
+  // R32
+  r32.forEach(f => {
+    if (f.home && !f.home.placeholder && progressMap[f.home.name]) progressMap[f.home.name].round = "1/16 de Final";
+    if (f.away && !f.away.placeholder && progressMap[f.away.name]) progressMap[f.away.name].round = "1/16 de Final";
+  });
+
+  // R16
+  r16.forEach(f => {
+    if (f.home && !f.home.placeholder && progressMap[f.home.name]) progressMap[f.home.name].round = "Octavos de Final";
+    if (f.away && !f.away.placeholder && progressMap[f.away.name]) progressMap[f.away.name].round = "Octavos de Final";
+  });
+
+  // QF
+  qf.forEach(f => {
+    if (f.home && !f.home.placeholder && progressMap[f.home.name]) progressMap[f.home.name].round = "Cuartos de Final";
+    if (f.away && !f.away.placeholder && progressMap[f.away.name]) progressMap[f.away.name].round = "Cuartos de Final";
+  });
+
+  // SF
+  sf.forEach(f => {
+    if (f.home && !f.home.placeholder && progressMap[f.home.name]) progressMap[f.home.name].round = "Semifinales";
+    if (f.away && !f.away.placeholder && progressMap[f.away.name]) progressMap[f.away.name].round = "Semifinales";
+  });
+
+  // Bronce (Tercer Puesto)
+  bronce.forEach(f => {
+    const isFinished = f.status === "finished";
+    const hName = f.home && !f.home.placeholder ? f.home.name : null;
+    const aName = f.away && !f.away.placeholder ? f.away.name : null;
+
+    if (hName && progressMap[hName]) {
+      progressMap[hName].round = isFinished ? (f.winner?.name === hName ? "Tercer Puesto 🥉" : "Cuarto Puesto") : "Semifinales";
+    }
+    if (aName && progressMap[aName]) {
+      progressMap[aName].round = isFinished ? (f.winner?.name === aName ? "Tercer Puesto 🥉" : "Cuarto Puesto") : "Semifinales";
+    }
+  });
+
+  // Final
+  final.forEach(f => {
+    const isFinished = f.status === "finished";
+    const hName = f.home && !f.home.placeholder ? f.home.name : null;
+    const aName = f.away && !f.away.placeholder ? f.away.name : null;
+
+    if (hName && progressMap[hName]) {
+      progressMap[hName].round = isFinished ? (f.winner?.name === hName ? "Campeón 🏆" : "Subcampeón 🥈") : "Finalista";
+    }
+    if (aName && progressMap[aName]) {
+      progressMap[aName].round = isFinished ? (f.winner?.name === aName ? "Campeón 🏆" : "Subcampeón 🥈") : "Finalista";
+    }
+  });
+
+  return progressMap;
+}
+
+function toggleExpandGlobal(confed) {
+  const tbody = document.getElementById("global-performance-table-body");
+  const confedRow = tbody.querySelector(`tr[data-confed="${confed}"]`);
+  if (!confedRow) return;
+
+  const isCurrentlyExpanded = expandedGlobalConfederations.has(confed);
+
+  if (isCurrentlyExpanded) {
+    // — Collapse —
+    expandedGlobalConfederations.delete(confed);
+    confedRow.setAttribute("aria-expanded", "false");
+
+    const toggleBtn = confedRow.querySelector(".confed-toggle");
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-expanded", "false");
+      toggleBtn.setAttribute("aria-label", `Expandir ${confed}`);
+      toggleBtn.textContent = "+";
+    }
+
+    // Gather team rows following this confed row
+    const teamRows = [];
+    let next = confedRow.nextElementSibling;
+    while (next && next.classList.contains("team-row")) {
+      teamRows.push(next);
+      next = next.nextElementSibling;
+    }
+
+    if (teamRows.length === 0) return;
+
+    // Animate out
+    teamRows.forEach((row, i) => {
+      row.style.animationDelay = `${i * 0.03}s`;
+      row.classList.add("row-exiting");
+    });
+
+    const lastRow = teamRows[teamRows.length - 1];
+    const onEnd = () => {
+      lastRow.removeEventListener("animationend", onEnd);
+      teamRows.forEach((row) => row.remove());
+    };
+    lastRow.addEventListener("animationend", onEnd, { once: true });
+
+    setTimeout(() => {
+      if (teamRows[0]?.parentNode) {
+        teamRows.forEach((row) => row.remove());
+      }
+    }, 400);
+  } else {
+    // — Expand —
+    expandedGlobalConfederations.add(confed);
+    confedRow.setAttribute("aria-expanded", "true");
+
+    const toggleBtn = confedRow.querySelector(".confed-toggle");
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-expanded", "true");
+      toggleBtn.setAttribute("aria-label", `Contraer ${confed}`);
+      toggleBtn.textContent = "−";
+    }
+
+    confedRow.classList.add("row-flash");
+    setTimeout(() => confedRow.classList.remove("row-flash"), 600);
+
+    // Build team rows
+    const progressMap = getTeamProgressMap();
+    const allTeams = Object.values(progressMap).filter(t => t.confederation === confed);
+
+    const roundOrder = {
+      "Campeón 🏆": 10,
+      "Subcampeón 🥈": 9,
+      "Tercer Puesto 🥉": 8,
+      "Cuarto Puesto": 7,
+      "Finalista": 6,
+      "Semifinales": 5,
+      "Cuartos de Final": 4,
+      "Octavos de Final": 3,
+      "1/16 de Final": 2,
+      "Fase de Grupos": 1
+    };
+
+    const originalTeams = teamData[confed] || [];
+    const teamStatsMap = {};
+    originalTeams.forEach(t => {
+      teamStatsMap[t.name] = t;
+    });
+
+    allTeams.sort((a, b) => {
+      const orderA = roundOrder[a.round] || 0;
+      const orderB = roundOrder[b.round] || 0;
+      if (orderA !== orderB) return orderB - orderA;
+      const statsA = teamStatsMap[a.name] || { pointsEarned: 0 };
+      const statsB = teamStatsMap[b.name] || { pointsEarned: 0 };
+      return statsB.pointsEarned - statsA.pointsEarned;
+    });
+
+    if (allTeams.length === 0) return;
+
+    let insertBefore = confedRow.nextElementSibling;
+    const fragment = document.createDocumentFragment();
+
+    for (const team of allTeams) {
+      const childTr = document.createElement("tr");
+      childTr.className = "team-row row-entering";
+      childTr.setAttribute("role", "row");
+
+      const stats = teamStatsMap[team.name] || { played: 0, pointsEarned: 0, average: 0 };
+
+      let roundBadgeClass = "match-status-badge--scheduled";
+      if (team.round === "Campeón 🏆" || team.round === "Tercer Puesto 🥉") {
+        roundBadgeClass = "match-status-badge--finished";
+      } else if (team.round === "Fase de Grupos" || team.round === "Cuarto Puesto" || !team.isAlive) {
+        roundBadgeClass = "match-status-badge--eliminated";
+      }
+
+      childTr.innerHTML = `
+        <td></td>
+        <td>
+          <div class="team-name-cell">
+            <img src="${FLAG_BASE_URL}${escapeHTML(team.code)}.svg"
+                 alt="Bandera de ${escapeHTML(team.name)}"
+                 class="country-flag"
+                 loading="lazy"
+                 width="22"
+                 height="16"
+                 onerror="this.style.display='none'">
+            <span>${escapeHTML(team.name)}</span>
+          </div>
+        </td>
+        <td class="col-center">
+          <span class="match-status-badge ${team.isAlive ? 'match-status-badge--scheduled' : 'match-status-badge--eliminated'}">
+            ${team.isAlive ? 'Vivo' : 'Eliminado'}
+          </span>
+        </td>
+        <td class="col-center">
+          <span class="match-status-badge ${roundBadgeClass}">
+            ${escapeHTML(team.round)}
+          </span>
+        </td>
+        <td class="col-center">${stats.played}</td>
+        <td class="col-center"><span class="stat-cell">${stats.pointsEarned} Pts</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--accent">${stats.average.toFixed(2)}</span></td>
+      `;
+      fragment.appendChild(childTr);
+    }
+
+    if (insertBefore) {
+      tbody.insertBefore(fragment, insertBefore);
+    } else {
+      tbody.appendChild(fragment);
+    }
+
+    const newRows = [];
+    let sib = confedRow.nextElementSibling;
+    while (sib && sib.classList.contains("team-row")) {
+      newRows.push(sib);
+      sib = sib.nextElementSibling;
+    }
+    if (newRows.length > 0) {
+      const cleanup = () => {
+        newRows[0].removeEventListener("animationend", cleanup);
+        newRows.forEach((r) => r.classList.remove("row-entering"));
+      };
+      newRows[0].addEventListener("animationend", cleanup, { once: true });
+      setTimeout(() => {
+        if (newRows[0]?.parentNode) {
+          newRows.forEach((r) => r.classList.remove("row-entering"));
+        }
+      }, 500);
+    }
+  }
+}
+
+function renderGlobalPerformance() {
+  const tbody = document.getElementById("global-performance-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const metrics = calculateGlobalMetrics();
+  const progressMap = getTeamProgressMap();
+
+  metrics.forEach((data, index) => {
+    const isExpanded = expandedGlobalConfederations.has(data.key);
+    const tr = document.createElement("tr");
+    tr.className = "confed-row";
+    tr.setAttribute("tabindex", "0");
+    tr.setAttribute("role", "row");
+    tr.setAttribute("data-confed", data.key);
+    tr.setAttribute("aria-expanded", String(isExpanded));
+    tr.setAttribute(
+      "aria-label",
+      `${data.key} - ${data.aliveTeams} de ${data.initialTeams} equipos vivos`
+    );
+
+    const survivalPct = Math.round(data.survivalRate);
+    const effectivenessPct = Math.round(data.effectiveness);
+
+    const survivalTooltip = `Supervivencia: (${data.aliveTeams} vivos / ${data.initialTeams} iniciales) * 100 = ${data.survivalRate.toFixed(1)}%`;
+    const effectivenessTooltip = `Efectividad vs Resto del Mundo: (${data.interConfPoints} Pts / (${data.interConfPlayed} partidos * 3)) * 100 = ${data.effectiveness.toFixed(1)}% (excluye partidos eliminatorios intra-confederación)`;
+    const crgTooltip = `Coeficiente de Rendimiento Global: (Puntos en Fase de Grupos [${data.groupPoints}] + Puntos por Avance Eliminatorio [${data.eliminationAdvancePoints}]) / Equipos Iniciales [${data.initialTeams}] = ${data.crg.toFixed(2)}`;
+
+    tr.innerHTML = `
+      <td class="col-rank">${index + 1}</td>
+      <td>
+        <div class="confed-row__cell">
+          <button class="confed-toggle"
+                  aria-label="Expandir ${escapeHTML(data.key)}"
+                  aria-expanded="${isExpanded}"
+                  data-confed="${escapeHTML(data.key)}">
+            ${isExpanded ? "−" : "+"}
+          </button>
+          <span class="confed-logo-wrap">
+            <img src="${escapeHTML(data.logo)}" alt="Logo de ${escapeHTML(data.key)}" class="confed-logo" width="28" height="28" onerror="this.style.display='none'">
+          </span>
+          <div class="confed-info">
+            <span class="confed-name">${escapeHTML(data.key)}</span>
+            <span class="confed-fullname">${escapeHTML(data.name)}</span>
+          </div>
+        </div>
+      </td>
+      <td class="col-center"><span class="stat-cell">${data.aliveTeams} / ${data.initialTeams}</span></td>
+      <td class="col-center">
+        <div class="progress-cell" title="${escapeHTML(survivalTooltip)}">
+          <span class="progress-cell__value">${survivalPct}%</span>
+          <span class="progress-cell__subtitle">${data.aliveTeams} / ${data.initialTeams} eq.</span>
+          <span class="progress-cell__bar-track" aria-hidden="true">
+            <span class="progress-cell__bar-fill" style="width:${survivalPct}%"></span>
+          </span>
+        </div>
+      </td>
+      <td class="col-center"><span class="stat-cell">${data.interConfPlayed}</span></td>
+      <td class="col-center">
+        <div class="progress-cell" title="${escapeHTML(effectivenessTooltip)}">
+          <span class="progress-cell__value">${effectivenessPct}%</span>
+          <span class="progress-cell__subtitle">${data.interConfPoints} / ${data.interConfPlayed * 3} Pts</span>
+          <span class="progress-cell__bar-track" aria-hidden="true">
+            <span class="progress-cell__bar-fill" style="width:${effectivenessPct}%"></span>
+          </span>
+        </div>
+      </td>
+      <td class="col-center">
+        <div class="progress-cell" title="${escapeHTML(crgTooltip)}">
+          <span class="progress-cell__value" style="color: var(--color-accent); font-weight: 700;">${data.crg.toFixed(2)}</span>
+          <span class="progress-cell__subtitle">(${data.groupPoints} + ${data.eliminationAdvancePoints}) / ${data.initialTeams} eq.</span>
+        </div>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+
+    // Attach toggle listener
+    const toggleBtn = tr.querySelector(".confed-toggle");
+    toggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleExpandGlobal(data.key);
+    });
+
+    // Keyboard accessibility for row
+    tr.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleExpandGlobal(data.key);
+      }
+    });
+
+    // Render expanded team rows if needed
+    if (isExpanded) {
+      const allTeams = Object.values(progressMap).filter(t => t.confederation === data.key);
+
+      const roundOrder = {
+        "Campeón 🏆": 10,
+        "Subcampeón 🥈": 9,
+        "Tercer Puesto 🥉": 8,
+        "Cuarto Puesto": 7,
+        "Finalista": 6,
+        "Semifinales": 5,
+        "Cuartos de Final": 4,
+        "Octavos de Final": 3,
+        "1/16 de Final": 2,
+        "Fase de Grupos": 1
+      };
+
+      const originalTeams = teamData[data.key] || [];
+      const teamStatsMap = {};
+      originalTeams.forEach(t => {
+        teamStatsMap[t.name] = t;
+      });
+
+      allTeams.sort((a, b) => {
+        const orderA = roundOrder[a.round] || 0;
+        const orderB = roundOrder[b.round] || 0;
+        if (orderA !== orderB) return orderB - orderA;
+        const statsA = teamStatsMap[a.name] || { pointsEarned: 0 };
+        const statsB = teamStatsMap[b.name] || { pointsEarned: 0 };
+        return statsB.pointsEarned - statsA.pointsEarned;
+      });
+
+      for (const team of allTeams) {
+        const childTr = document.createElement("tr");
+        childTr.className = "team-row";
+        childTr.setAttribute("role", "row");
+
+        const stats = teamStatsMap[team.name] || { played: 0, pointsEarned: 0, average: 0 };
+
+        let roundBadgeClass = "match-status-badge--scheduled";
+        if (team.round === "Campeón 🏆" || team.round === "Tercer Puesto 🥉") {
+          roundBadgeClass = "match-status-badge--finished";
+        } else if (team.round === "Fase de Grupos" || team.round === "Cuarto Puesto" || !team.isAlive) {
+          roundBadgeClass = "match-status-badge--eliminated";
+        }
+
+        childTr.innerHTML = `
+          <td></td>
+          <td>
+            <div class="team-name-cell">
+              <img src="${FLAG_BASE_URL}${escapeHTML(team.code)}.svg"
+                   alt="Bandera de ${escapeHTML(team.name)}"
+                   class="country-flag"
+                   loading="lazy"
+                   width="22"
+                   height="16"
+                   onerror="this.style.display='none'">
+              <span>${escapeHTML(team.name)}</span>
+            </div>
+          </td>
+          <td class="col-center">
+            <span class="match-status-badge ${team.isAlive ? 'match-status-badge--scheduled' : 'match-status-badge--eliminated'}">
+              ${team.isAlive ? 'Vivo' : 'Eliminado'}
+            </span>
+          </td>
+          <td class="col-center">
+            <span class="match-status-badge ${roundBadgeClass}">
+              ${escapeHTML(team.round)}
+            </span>
+          </td>
+          <td class="col-center">${stats.played}</td>
+          <td class="col-center"><span class="stat-cell">${stats.pointsEarned} Pts</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--accent">${stats.average.toFixed(2)}</span></td>
+        `;
+
+        tbody.appendChild(childTr);
+      }
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Bootstrap
 // ---------------------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", async () => {
   initTheme();
   initSortListeners();
+  initTabs();
   await initializeData();
   renderTable();
 });
