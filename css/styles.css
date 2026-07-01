@@ -1592,6 +1592,15 @@ th[aria-sort] .sort-indicator {
   font-weight: 700;
 }
 
+.match-team.loser {
+  opacity: 0.55;
+  filter: grayscale(45%);
+}
+
+.match-team.loser span {
+  text-decoration: line-through;
+}
+
 .match-score-box {
   display: flex;
   flex-direction: column;

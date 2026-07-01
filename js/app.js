@@ -297,6 +297,11 @@ function renderTable() {
       toggleExpand(data.confederation);
     });
 
+    // Click listener for the row itself
+    tr.addEventListener("click", () => {
+      toggleExpand(data.confederation);
+    });
+
     // Keyboard accessibility for row
     tr.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
@@ -860,6 +865,8 @@ function renderKnockoutByConfederation() {
 
       const homeWinnerClass = (isFinished && fixture.winner && fixture.winner.name === homeName) ? "winner" : "";
       const awayWinnerClass = (isFinished && fixture.winner && fixture.winner.name === awayName) ? "winner" : "";
+      const homeLoserClass = (isFinished && fixture.winner && fixture.winner.name !== homeName) ? "loser" : "";
+      const awayLoserClass = (isFinished && fixture.winner && fixture.winner.name !== awayName) ? "loser" : "";
 
       matchesHTML += `
         <div class="knockout-match-item">
@@ -868,7 +875,7 @@ function renderKnockoutByConfederation() {
             <span class="match-status-badge ${statusClass}">${statusText}</span>
           </div>
           <div class="knockout-match-item__body">
-            <div class="match-team match-team--home ${homeWinnerClass}">
+            <div class="match-team match-team--home ${homeWinnerClass} ${homeLoserClass}">
               <span>${escapeHTML(homeName)}</span>
               <img src="${FLAG_BASE_URL}${escapeHTML(fixture.home.code)}.svg" class="country-flag" width="20" height="14" alt="" onerror="this.style.display='none'">
             </div>
@@ -876,7 +883,7 @@ function renderKnockoutByConfederation() {
               <div>${scoreText}</div>
               ${pensHTML}
             </div>
-            <div class="match-team match-team--away ${awayWinnerClass}">
+            <div class="match-team match-team--away ${awayWinnerClass} ${awayLoserClass}">
               <img src="${FLAG_BASE_URL}${escapeHTML(fixture.away.code)}.svg" class="country-flag" width="20" height="14" alt="" onerror="this.style.display='none'">
               <span>${escapeHTML(awayName)}</span>
             </div>
@@ -1195,7 +1202,7 @@ function getTeamProgressMap() {
   const progressMap = {};
   const aliveTeams = getAliveTeams();
 
-  // Initialize with "Fase de Grupos"
+  // Initialize with "Fase de Grupos" and 0 advance points
   for (const confedKey in teamData) {
     teamData[confedKey].forEach(t => {
       progressMap[t.name] = {
@@ -1203,9 +1210,25 @@ function getTeamProgressMap() {
         code: t.code,
         confederation: confedKey,
         round: "Fase de Grupos",
-        isAlive: aliveTeams[t.name]?.status === "alive"
+        isAlive: aliveTeams[t.name]?.status === "alive",
+        advancePoints: 0
       };
     });
+  }
+
+  // Calculate advance points for each team based on rounds in knockoutData
+  if (knockoutData.rounds) {
+    for (const round of knockoutData.rounds) {
+      const roundOrder = round.order || 1;
+      for (const fixture of round.fixtures) {
+        if (fixture.home && fixture.home.name && progressMap[fixture.home.name]) {
+          progressMap[fixture.home.name].advancePoints += roundOrder;
+        }
+        if (fixture.away && fixture.away.name && progressMap[fixture.away.name]) {
+          progressMap[fixture.away.name].advancePoints += roundOrder;
+        }
+      }
+    }
   }
 
   // Resolve matches using the propagation logic of the bracket
@@ -1376,6 +1399,7 @@ function toggleExpandGlobal(confed) {
       childTr.setAttribute("role", "row");
 
       const stats = teamStatsMap[team.name] || { played: 0, pointsEarned: 0, average: 0 };
+      const teamCRG = stats.pointsEarned + (team.advancePoints || 0);
 
       let roundBadgeClass = "match-status-badge--scheduled";
       if (team.round === "Campeón 🏆" || team.round === "Tercer Puesto 🥉") {
@@ -1410,7 +1434,7 @@ function toggleExpandGlobal(confed) {
         </td>
         <td class="col-center">${stats.played}</td>
         <td class="col-center"><span class="stat-cell">${stats.pointsEarned} Pts</span></td>
-        <td class="col-center"><span class="stat-cell stat-cell--accent">${stats.average.toFixed(2)}</span></td>
+        <td class="col-center"><span class="stat-cell stat-cell--accent">${teamCRG.toFixed(2)}</span></td>
       `;
       fragment.appendChild(childTr);
     }
@@ -1526,6 +1550,11 @@ function renderGlobalPerformance() {
       toggleExpandGlobal(data.key);
     });
 
+    // Click listener for the row itself
+    tr.addEventListener("click", () => {
+      toggleExpandGlobal(data.key);
+    });
+
     // Keyboard accessibility for row
     tr.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
@@ -1572,6 +1601,7 @@ function renderGlobalPerformance() {
         childTr.setAttribute("role", "row");
 
         const stats = teamStatsMap[team.name] || { played: 0, pointsEarned: 0, average: 0 };
+        const teamCRG = stats.pointsEarned + (team.advancePoints || 0);
 
         let roundBadgeClass = "match-status-badge--scheduled";
         if (team.round === "Campeón 🏆" || team.round === "Tercer Puesto 🥉") {
@@ -1606,7 +1636,7 @@ function renderGlobalPerformance() {
           </td>
           <td class="col-center">${stats.played}</td>
           <td class="col-center"><span class="stat-cell">${stats.pointsEarned} Pts</span></td>
-          <td class="col-center"><span class="stat-cell stat-cell--accent">${stats.average.toFixed(2)}</span></td>
+          <td class="col-center"><span class="stat-cell stat-cell--accent">${teamCRG.toFixed(2)}</span></td>
         `;
 
         tbody.appendChild(childTr);
