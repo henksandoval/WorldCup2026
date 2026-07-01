@@ -25,7 +25,7 @@
   ],
   "Grupo E": [
     { "name": "Alemania", "code": "de", "confederation": "UEFA", "played": 3, "won": 2, "drawn": 0, "lost": 1, "gf": 10, "gc": 4 },
-    { "name": "Costa de Marfil", "code": "ci", "confederation": "CAF", "played": 3, "won": 2, "drawn": 1, "lost": 0, "gf": 4, "gc": 2 },
+    { "name": "Costa de Marfil", "code": "ci", "confederation": "CAF", "played": 3, "won": 2, "drawn": 0, "lost": 1, "gf": 4, "gc": 2 },
     { "name": "Ecuador", "code": "ec", "confederation": "CONMEBOL", "played": 3, "won": 1, "drawn": 1, "lost": 1, "gf": 2, "gc": 2 },
     { "name": "Curazao", "code": "cw", "confederation": "CONCACAF", "played": 3, "won": 0, "drawn": 1, "lost": 2, "gf": 1, "gc": 9 }
   ],
@@ -50,7 +50,7 @@
   "Grupo I": [
     { "name": "Francia", "code": "fr", "confederation": "UEFA", "played": 3, "won": 3, "drawn": 0, "lost": 0, "gf":10, "gc": 2 },
     { "name": "Noruega", "code": "no", "confederation": "UEFA", "played": 3, "won": 2, "drawn": 0, "lost": 1, "gf": 8, "gc": 7 },
-    { "name": "Senegal", "code": "sn", "confederation": "CAF", "played": 3, "won": 0, "drawn": 1, "lost": 2, "gf": 8, "gc": 6 },
+    { "name": "Senegal", "code": "sn", "confederation": "CAF", "played": 3, "won": 1, "drawn": 0, "lost": 2, "gf": 8, "gc": 6 },
     { "name": "Irak", "code": "iq", "confederation": "AFC", "played": 3, "won": 0, "drawn": 0, "lost": 3, "gf": 1, "gc":12 }
   ],
   "Grupo J": [
