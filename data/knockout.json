@@ -136,12 +136,12 @@
           "id": "R32-12",
           "home": { "name": "Inglaterra", "code": "gb-eng", "confederation": "UEFA" },
           "away": { "name": "RD Congo", "code": "cd", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Inglaterra", "code": "gb-eng", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R32-13",
