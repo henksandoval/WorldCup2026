@@ -114,23 +114,23 @@
           "id": "R32-10",
           "home": { "name": "Costa de Marfil", "code": "ci", "confederation": "CAF" },
           "away": { "name": "Noruega", "code": "no", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 1,
+          "scoreAway": 2,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Noruega", "code": "no", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R32-11",
           "home": { "name": "México", "code": "mx", "confederation": "CONCACAF" },
           "away": { "name": "Ecuador", "code": "ec", "confederation": "CONMEBOL" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 0,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "México", "code": "mx", "confederation": "CONCACAF" },
+          "status": "finished"
         },
         {
           "id": "R32-12",
