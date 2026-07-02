@@ -81,23 +81,23 @@
           "id": "R32-07",
           "home": { "name": "Estados Unidos", "code": "us", "confederation": "CONCACAF" },
           "away": { "name": "Bosnia y Herzegovina", "code": "ba", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 0,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Estados Unidos", "code": "us", "confederation": "CONCACAF" },
+          "status": "finished"
         },
         {
           "id": "R32-08",
           "home": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
           "away": { "name": "Senegal", "code": "sn", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 3,
+          "scoreAway": 2,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R32-09",
