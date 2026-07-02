@@ -70,12 +70,12 @@
           "id": "R32-06",
           "home": { "name": "España", "code": "es", "confederation": "UEFA" },
           "away": { "name": "Austria", "code": "at", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 3,
+          "scoreAway": 0,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R32-07",
