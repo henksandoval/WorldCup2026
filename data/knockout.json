@@ -59,12 +59,12 @@
           "id": "R32-05",
           "home": { "name": "Portugal", "code": "pt", "confederation": "UEFA" },
           "away": { "name": "Croacia", "code": "hr", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Portugal", "code": "pt", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R32-06",
@@ -169,12 +169,12 @@
           "id": "R32-15",
           "home": { "name": "Suiza", "code": "ch", "confederation": "UEFA" },
           "away": { "name": "Argelia", "code": "dz", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 0,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Suiza", "code": "ch", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R32-16",
