@@ -1,5 +1,5 @@
 {
-  "currentRound": "R32",
+  "currentRound": "R16",
   "bonuses": {
     "allRounds": 1
   },
@@ -147,23 +147,23 @@
           "id": "R32-13",
           "home": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
           "away": { "name": "Cabo Verde", "code": "cv", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 3,
+          "scoreAway": 2,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
+          "status": "finished"
         },
         {
           "id": "R32-14",
           "home": { "name": "Australia", "code": "au", "confederation": "AFC" },
           "away": { "name": "Egipto", "code": "eg", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
-          "pensHome": null,
-          "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "scoreHome": 1,
+          "scoreAway": 1,
+          "pensHome": 2,
+          "pensAway": 4,
+          "winner": { "name": "Egipto", "code": "eg", "confederation": "CAF" },
+          "status": "finished"
         },
         {
           "id": "R32-15",
@@ -180,6 +180,101 @@
           "id": "R32-16",
           "home": { "name": "Colombia", "code": "co", "confederation": "CONMEBOL" },
           "away": { "name": "Ghana", "code": "gh", "confederation": "CAF" },
+          "scoreHome": 1,
+          "scoreAway": 0,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": { "name": "Colombia", "code": "co", "confederation": "CONMEBOL" },
+          "status": "finished"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "name": "Octavos de Final",
+      "shortName": "1/8",
+      "order": 2,
+      "bonus": 2,
+      "fixtures": [
+        {
+          "id": "R16-1",
+          "home": { "name": "Paraguay", "code": "py", "confederation": "CONMEBOL" },
+          "away": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+        {
+          "id": "R16-2",
+          "home": { "name": "Canadá", "code": "ca", "confederation": "CONCACAF" },
+          "away": { "name": "Marruecos", "code": "ma", "confederation": "CAF" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+        {
+          "id": "R16-3",
+          "home": { "name": "Portugal", "code": "pt", "confederation": "UEFA" },
+          "away": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },{
+          "id": "R16-4",
+          "home": { "name": "Estados Unidos", "code": "us", "confederation": "CONCACAF" },
+          "away": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+        {
+          "id": "R16-5",
+          "home": { "name": "Brasil", "code": "br", "confederation": "CONMEBOL" },
+          "away": { "name": "Noruega", "code": "no", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+        {
+          "id": "R16-6",
+          "home": { "name": "México", "code": "mx", "confederation": "CONCACAF" },
+          "away": { "name": "Inglaterra", "code": "gb", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },{
+          "id": "R16-7",
+          "home": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
+          "away": { "name": "Egipto", "code": "eg", "confederation": "CAF" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+        {
+          "id": "R16-8",
+          "home": { "name": "Suiza", "code": "ch", "confederation": "UEFA" },
+          "away": { "name": "Colombia", "code": "co", "confederation": "CONMEBOL" },
           "scoreHome": null,
           "scoreAway": null,
           "pensHome": null,
