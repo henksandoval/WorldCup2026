@@ -200,23 +200,23 @@
           "id": "R16-1",
           "home": { "name": "Paraguay", "code": "py", "confederation": "CONMEBOL" },
           "away": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 0,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R16-2",
           "home": { "name": "Canadá", "code": "ca", "confederation": "CONCACAF" },
           "away": { "name": "Marruecos", "code": "ma", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 0,
+          "scoreAway": 3,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Marruecos", "code": "ma", "confederation": "CAF" },
+          "status": "finished"
         },
         {
           "id": "R16-3",
@@ -243,23 +243,23 @@
           "id": "R16-5",
           "home": { "name": "Brasil", "code": "br", "confederation": "CONMEBOL" },
           "away": { "name": "Noruega", "code": "no", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 1,
+          "scoreAway": 2,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Noruega", "code": "no", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R16-6",
           "home": { "name": "México", "code": "mx", "confederation": "CONCACAF" },
           "away": { "name": "Inglaterra", "code": "gb", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 0,
+          "scoreAway": 3,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Inglaterra", "code": "gb", "confederation": "UEFA" },
+          "status": "finished"
         },{
           "id": "R16-7",
           "home": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
