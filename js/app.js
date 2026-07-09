@@ -927,7 +927,7 @@ function pad(num) {
 }
 
 function getWinnerOfMatch(fixtures, matchId) {
-  const match = fixtures.find(f => f.id === matchId);
+  const match = fixtures.find(f => f.id === matchId || f.id === matchId.replace("-0", "-"));
   if (!match) return { name: `Ganador ${matchId}`, placeholder: true };
   if (match.status === "finished" && match.winner) {
     return { name: match.winner.name, code: match.winner.code, confederation: match.winner.confederation };
@@ -936,7 +936,7 @@ function getWinnerOfMatch(fixtures, matchId) {
 }
 
 function getLoserOfMatch(fixtures, matchId) {
-  const match = fixtures.find(f => f.id === matchId);
+  const match = fixtures.find(f => f.id === matchId || f.id === matchId.replace("-0", "-"));
   if (!match) return { name: `Perdedor ${matchId}`, placeholder: true };
   if (match.status === "finished" && match.winner) {
     const homeName = match.home.name;
@@ -959,7 +959,7 @@ function getRoundFixtures(roundId, prevFixtures) {
   if (roundId === "R16") {
     for (let j = 1; j <= 8; j++) {
       const id = `R16-${pad(j)}`;
-      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id || f.id === id.replace("-0", "-")) : null;
       const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, `R32-${pad(2 * j - 1)}`);
       const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, `R32-${pad(2 * j)}`);
 
@@ -976,7 +976,7 @@ function getRoundFixtures(roundId, prevFixtures) {
   } else if (roundId === "QF") {
     for (let j = 1; j <= 4; j++) {
       const id = `QF-${pad(j)}`;
-      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id || f.id === id.replace("-0", "-")) : null;
       const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, `R16-${pad(2 * j - 1)}`);
       const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, `R16-${pad(2 * j)}`);
 
@@ -993,7 +993,7 @@ function getRoundFixtures(roundId, prevFixtures) {
   } else if (roundId === "SF") {
     for (let j = 1; j <= 2; j++) {
       const id = `SF-${pad(j)}`;
-      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+      const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id || f.id === id.replace("-0", "-")) : null;
       const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, `QF-${pad(2 * j - 1)}`);
       const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, `QF-${pad(2 * j)}`);
 
@@ -1009,7 +1009,7 @@ function getRoundFixtures(roundId, prevFixtures) {
     }
   } else if (roundId === "Final") {
     const id = "Final";
-    const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+    const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id || f.id === id.replace("-0", "-")) : null;
     const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getWinnerOfMatch(prevFixtures, "SF-01");
     const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getWinnerOfMatch(prevFixtures, "SF-02");
 
@@ -1024,7 +1024,7 @@ function getRoundFixtures(roundId, prevFixtures) {
     });
   } else if (roundId === "Bronce") {
     const id = "Bronce";
-    const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id) : null;
+    const jsonFixture = roundJSON ? roundJSON.fixtures.find(f => f.id === id || f.id === id.replace("-0", "-")) : null;
     const home = jsonFixture && jsonFixture.home && jsonFixture.home.name ? jsonFixture.home : getLoserOfMatch(prevFixtures, "SF-01");
     const away = jsonFixture && jsonFixture.away && jsonFixture.away.name ? jsonFixture.away : getLoserOfMatch(prevFixtures, "SF-02");
 
