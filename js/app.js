@@ -1654,5 +1654,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSortListeners();
   initTabs();
   await initializeData();
-  renderTable();
+  // Render active tab content on startup
+  const activeTab = document.querySelector(".tab-btn.active");
+  if (activeTab) {
+    const controls = activeTab.getAttribute("aria-controls");
+    if (controls === "view-groups") {
+      renderTable();
+    } else if (controls === "view-knockout-list") {
+      renderKnockoutByConfederation();
+    } else if (controls === "view-bracket") {
+      renderBracket();
+    } else if (controls === "view-global") {
+      renderGlobalPerformance();
+    }
+  } else {
+    renderTable();
+  }
 });
