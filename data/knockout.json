@@ -222,22 +222,22 @@
           "id": "R16-3",
           "home": { "name": "Portugal", "code": "pt", "confederation": "UEFA" },
           "away": { "name": "España", "code": "es", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 0,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "status": "finished"
         },{
           "id": "R16-4",
           "home": { "name": "Estados Unidos", "code": "us", "confederation": "CONCACAF" },
           "away": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 1,
+          "scoreAway": 4,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "R16-5",
@@ -254,7 +254,7 @@
           "id": "R16-6",
           "home": { "name": "México", "code": "mx", "confederation": "CONCACAF" },
           "away": { "name": "Inglaterra", "code": "gb", "confederation": "UEFA" },
-          "scoreHome": 0,
+          "scoreHome": 2,
           "scoreAway": 3,
           "pensHome": null,
           "pensAway": null,
@@ -283,6 +283,58 @@
           "status": "finished"
         }
       ]
-    }
+    },
+{
+      "id": "R16",
+      "name": "Octavos de Final",
+      "shortName": "1/8",
+      "order": 2,
+      "bonus": 2,
+      "fixtures": [
+        {
+          "id": "R16-1",
+          "home": { "name": "Paraguay", "code": "py", "confederation": "CONMEBOL" },
+          "away": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
+          "scoreHome": 0,
+          "scoreAway": 1,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
+          "status": "finished"
+        },
+        {
+          "id": "R16-2",
+          "home": { "name": "Canadá", "code": "ca", "confederation": "CONCACAF" },
+          "away": { "name": "Marruecos", "code": "ma", "confederation": "CAF" },
+          "scoreHome": 0,
+          "scoreAway": 3,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": { "name": "Marruecos", "code": "ma", "confederation": "CAF" },
+          "status": "finished"
+        },
+        {
+          "id": "R16-3",
+          "home": { "name": "Portugal", "code": "pt", "confederation": "UEFA" },
+          "away": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },{
+          "id": "R16-4",
+          "home": { "name": "Estados Unidos", "code": "us", "confederation": "CONCACAF" },
+          "away": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
+          "scoreHome": null,
+          "scoreAway": null,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+      ]
+    }    
   ]
 }
