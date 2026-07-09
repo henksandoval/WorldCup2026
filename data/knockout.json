@@ -297,12 +297,12 @@
           "id": "QF-01",
           "home": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
           "away": { "name": "Marruecos", "code": "ma", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 0,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "QF-02",
