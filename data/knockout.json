@@ -264,23 +264,23 @@
           "id": "R16-7",
           "home": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
           "away": { "name": "Egipto", "code": "eg", "confederation": "CAF" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 3,
+          "scoreAway": 2,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": {"name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
+          "status": "finished"
         },
         {
           "id": "R16-8",
           "home": { "name": "Suiza", "code": "ch", "confederation": "UEFA" },
           "away": { "name": "Colombia", "code": "co", "confederation": "CONMEBOL" },
-          "scoreHome": null,
-          "scoreAway": null,
-          "pensHome": null,
-          "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "scoreHome": 0,
+          "scoreAway": 0,
+          "pensHome": 4,
+          "pensAway": 3,
+          "winner": { "name": "Suiza", "code": "ch", "confederation": "UEFA" },
+          "status": "finished"
         }
       ]
     }
