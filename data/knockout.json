@@ -308,12 +308,12 @@
           "id": "QF-02",
           "home": { "name": "España", "code": "es", "confederation": "UEFA" },
           "away": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "QF-03",
