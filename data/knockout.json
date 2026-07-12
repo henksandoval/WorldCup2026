@@ -308,34 +308,34 @@
           "id": "QF-02",
           "home": { "name": "España", "code": "es", "confederation": "UEFA" },
           "away": { "name": "Bélgica", "code": "be", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 2,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "QF-03",
           "home": { "name": "Noruega", "code": "no", "confederation": "UEFA" },
           "away": { "name": "Inglaterra", "code": "gb-eng", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 1,
+          "scoreAway": 2,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Inglaterra", "code": "gb-eng", "confederation": "UEFA" },
+          "status": "finished"
         },
         {
           "id": "QF-04",
           "home": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
           "away": { "name": "Suiza", "code": "ch", "confederation": "UEFA" },
-          "scoreHome": null,
-          "scoreAway": null,
+          "scoreHome": 3,
+          "scoreAway": 1,
           "pensHome": null,
           "pensAway": null,
-          "winner": null,
-          "status": "scheduled"
+          "winner": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
+          "status": "finished"
         }
       ]
     }
