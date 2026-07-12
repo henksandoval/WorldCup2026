@@ -338,6 +338,37 @@
           "status": "finished"
         }
       ]
-    }
+    },
+    {
+      "id": "SF",
+      "name": "Semifinales",
+      "shortName": "1/2",
+      "order": 4,
+      "bonus": 4,
+      "fixtures": [
+        {
+          "id": "SF-01",
+          "home": { "name": "Francia", "code": "fr", "confederation": "UEFA" },
+          "away": { "name": "España", "code": "es", "confederation": "UEFA" },
+          "scoreHome": 2,
+          "scoreAway": 0,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        },
+        {
+          "id": "SF-02",
+          "home": { "name": "Inglaterra", "code": "gb-eng", "confederation": "UEFA" },
+          "away": { "name": "Argentina", "code": "ar", "confederation": "CONMEBOL" },
+          "scoreHome": 2,
+          "scoreAway": 1,
+          "pensHome": null,
+          "pensAway": null,
+          "winner": null,
+          "status": "scheduled"
+        }
+      ]
+    }    
   ]
 }
